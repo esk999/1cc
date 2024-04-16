@@ -181,9 +181,10 @@ Node *new_node_num(int val){
 //先に関数宣言
 Node *expr();
 Node *mul();
+Node *unary();
 Node *primary();
 
-// 生成規則: expr = mul ("+" mul || "-" mul)
+// 生成規則: expr = mul ("+" mul || "-" mul)*
 Node *expr(){
     Node *node = mul();
 
@@ -200,21 +201,34 @@ Node *expr(){
     }
 }
 
-//生成規則: mul = primary("*" primary | "/" primary)
+//生成規則: mul = unary("*" unary | "/" unary)*
 Node *mul(){
-    Node *node = primary();
+    Node *node = unary();
 
     for(;;){
         if(consume('*')){
-            node = new_node(ND_MUL, node, primary());
+            node = new_node(ND_MUL, node, unary());
         }
         else if(consume('/')){
-            node = new_node(ND_DIV, node, primary());
+            node = new_node(ND_DIV, node, unary());
         }
         else{
             return node;
         }
     }
+}
+
+// 生成規則: unary = ("+" | "-")? primary
+Node *unary(){
+    if(consume('+')){
+        return primary(); // +xをxに変換
+
+    }
+    if(consume('-')){
+        // -xを0-xに変換
+        return new_node(ND_SUB, new_node_num(0), unary());
+    }
+    return primary();
 }
 
 //生成規則: primary = num | "(" expr ")"
