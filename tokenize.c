@@ -102,7 +102,7 @@ bool startswitch(char *p, char *q){
 }
 
 //入力文字列pをトークナイズしてそれを返す
-Token *tokenize(){
+void tokenize(){
     char *p = user_input;
     Token head;
     head.next = NULL;
@@ -151,5 +151,6 @@ Token *tokenize(){
     }
     
     new_token(TK_EOF, cur, p);
-    return head.next;
+    token = head.next;
+    return;
 }

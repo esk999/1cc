@@ -68,7 +68,7 @@ int expect_number();
 bool at_eof();
 Token *new_token(TokenKind kind, Token *cur, char *str);
 bool startswitch(char *p, char *q);
-Token *tokenize();
+void tokenize();
 Token *consume_ident();
 
 //コード生成    codegen.c
