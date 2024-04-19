@@ -79,11 +79,10 @@ bool at_eof(){
 }
 
 //新しいトークンを作成してcurにつなげる
-Token *new_token(TokenKind kind, Token *cur, char *str, int len){
+Token *new_token(TokenKind kind, Token *cur, char *str){
     Token *tok = calloc(1, sizeof(Token));
     tok->kind = kind;
     tok->str = str;
-    tok->len = len;
     cur->next = tok;
     return tok;
 }
@@ -109,20 +108,22 @@ Token *tokenize(){
         //2文字の比較演算子のときのトークナイズの長さを2にする
         if(startswitch(p, "==") || startswitch(p, "!=") ||
             startswitch(p, "<=") || startswitch(p, ">=")){
-            cur = new_token(TK_RESERVED, cur, p, 2);
+            cur = new_token(TK_RESERVED, cur, p);
+            cur -> len = 2;
             p += 2; //2個進める
             continue;;
         }
         
         //1文字の比較演算子と括弧と計算記号
         if(strchr("+-*/()<>", *p)){
-            cur = new_token(TK_RESERVED, cur, p++, 1);
+            cur = new_token(TK_RESERVED, cur, p++);
+            cur -> len = 1;
             continue;
         }
 
         //数値の場合
         if(isdigit(*p)){
-            cur = new_token(TK_NUM, cur, p, 0);
+            cur = new_token(TK_NUM, cur, p);
             char *q = p;
             cur->val = strtol(p, &p, 10);
             cur->len = p - q;
@@ -132,7 +133,7 @@ Token *tokenize(){
         error_at(p, "invalid token");
     }
     
-    new_token(TK_EOF, cur, p, 0);
+    new_token(TK_EOF, cur, p);
     return head.next;
 }
 

@@ -8,6 +8,7 @@
 //トークンの種類
 typedef enum{
     TK_RESERVED,    //記号
+    TK_IDENT,     // 識別子
     TK_NUM,         //整数トークン
     TK_EOF,         //入力終わりを表すトークン
 } TokenKind;
@@ -62,7 +63,8 @@ Node *expr();
 
 
 //
-Token *new_token(TokenKind kind, Token *cur, char *str, int len);bool startswitch(char *p, char *q);
+Token *new_token(TokenKind kind, Token *cur, char *str);
+bool startswitch(char *p, char *q);
 Token *tokenize();
 
 
