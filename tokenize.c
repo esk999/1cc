@@ -94,6 +94,7 @@ Token *new_token(TokenKind kind, Token *cur, char *str){
     return tok;
 }
 
+//長さが一致しているかを判定
 bool startswitch(char *p, char *q){
     return memcmp(p, q, strlen(q)) == 0;
 }
@@ -122,7 +123,7 @@ Token *tokenize(){
         }
         
         //1文字の比較演算子と括弧と計算記号
-        if(strchr("+-*/()<>", *p)){
+        if(strchr("+-*/()<>=", *p)){
             cur = new_token(TK_RESERVED, cur, p++);
             cur -> len = 1;
             continue;
