@@ -56,7 +56,8 @@ Token *token;
 
 //パーサ
 Node *expr();
-
+Node *code[100];
+void program();
 
 //トークナイザ
 void error(char *fmt, ...);

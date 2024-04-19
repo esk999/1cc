@@ -71,7 +71,10 @@ int expect_number(){
 }
 
 bool at_eof(){
-    return token->kind == TK_EOF;
+    if(token->kind == TK_EOF){
+        return true;
+    }
+    return false;
 }
 
 Token *consume_ident(){
@@ -81,8 +84,7 @@ Token *consume_ident(){
         return identToken;
     }
 
-    // ひとまず0を返す 当初returnを省略してたら、謎のアドレスが返されていたので。
-    return 0;
+    return NULL;
 }
 
 //新しいトークンを作成してcurにつなげる
@@ -123,7 +125,7 @@ Token *tokenize(){
         }
         
         //1文字の比較演算子と括弧と計算記号
-        if(strchr("+-*/()<>=", *p)){
+        if(strchr("+-*/()<>=;", *p)){
             cur = new_token(TK_RESERVED, cur, p++);
             cur -> len = 1;
             continue;

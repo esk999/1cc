@@ -7,6 +7,7 @@
 //
 Node *new_node(NodeKind kind, Node *lhs, Node *rhs);
 Node *new_node_num(int val);
+Node *stmt();
 Node *equality();
 Node *relational();
 Node *add();
@@ -32,12 +33,27 @@ Node *new_node_num(int val){
     return node;
 }
 
+//
+void program(){
+    int i = 0;
+    while(!at_eof()){
+        code[i++] = stmt();
+    }
+    code[i] = NULL;
+}
+
+Node *stmt(){
+    Node *node = expr();
+    expect(";");
+    return node;
+}
+
 // 生成規則: expr = assign
 Node *expr(){
     return assign();
 }
 
-// 生成規則:
+// 生成規則: assign = equality ("=" assign)?
 Node *assign() {
     Node *node =  equality();
     if(consume("=")) {
