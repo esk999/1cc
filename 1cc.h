@@ -23,17 +23,6 @@ struct Token{
     int len;        //トークンの長さ
 };
 
-void error(char *fmt, ...);
-void error_at(char *loc, char *fmt, ...);
-bool consume(char *op);
-void expect(char *op);
-int expect_number();
-bool at_eof();
-
-//
-// parse.c
-//
-
 //抽象構文木のノードの種類
 typedef enum{
     ND_ADD, // +
@@ -45,6 +34,8 @@ typedef enum{
     ND_NE,  // !=
     ND_LT,  // <
     ND_LE,  // <=
+    ND_ASSIGN, // =
+    ND_LVAR,  // ローカル変数
 } NodeKind;
 
 typedef struct Node Node;
@@ -54,20 +45,30 @@ struct Node{
     Node *lhs;     //左辺
     Node *rhs;     //右辺
     int val;       //kindがND_NUMの場合のみ扱う
+    int offset;    //kindがND_LVARの場合のみ扱う
 };
 
+//入力プログラム
+char *user_input;
 
+//現在注目しているトークン
+Token *token;
 
-//
+//パーサ
 Node *expr();
 
 
-//
+//トークナイザ
+void error(char *fmt, ...);
+void error_at(char *loc, char *fmt, ...);
+bool consume(char *op);
+void expect(char *op);
+int expect_number();
+bool at_eof();
 Token *new_token(TokenKind kind, Token *cur, char *str);
 bool startswitch(char *p, char *q);
 Token *tokenize();
-
-
+Token *consume_ident();
 
 //コード生成    codegen.c
 void gen(Node *node);

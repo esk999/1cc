@@ -13,6 +13,7 @@ Node *add();
 Node *mul();
 Node *unary();
 Node *primary();
+Node *assign();
 
 //左辺と右辺を受け取る2項演算子
 Node *new_node(NodeKind kind, Node *lhs, Node *rhs){
@@ -31,9 +32,19 @@ Node *new_node_num(int val){
     return node;
 }
 
-// 生成規則: expr = equality
+// 生成規則: expr = assign
 Node *expr(){
-    return equality();
+    return assign();
+}
+
+// 生成規則:
+Node *assign() {
+    Node *node =  equality();
+    if(consume("=")) {
+        return new_node(ND_ASSIGN, node, assign());
+    }
+
+    return node;
 }
 
 //生成規則: equality = relational ("==" relational | != relational)*
@@ -129,6 +140,14 @@ Node *primary(){
     if(consume("(")){
         Node *node = expr();
         expect(")"); //期待している記号が次に来るか確認
+        return node;
+    }
+
+    Token *tok = consume_ident();
+    if(tok) {
+        Node *node = calloc(1, sizeof(Node));
+        node->kind = ND_LVAR;
+        node->offset = (tok->str[0] - 'a' + 1) * 8;
         return node;
     }
 

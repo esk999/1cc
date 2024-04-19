@@ -1,7 +1,6 @@
 #include "1cc.h"
 
-//現在注目しているトークン
-Token *token;
+
 
 //エラーを報告するための関数
 //printfと同じ引数をとる
@@ -13,8 +12,7 @@ void error(char *fmt, ...){
     exit(1);
 }
 
-//入力プログラム
-char *user_input;
+
 
 //エラー個所を報告
 void error_at(char *loc, char *fmt, ...){
@@ -76,6 +74,17 @@ int expect_number(){
 
 bool at_eof(){
     return token->kind == TK_EOF;
+}
+
+Token *consume_ident(){
+    if(token->kind == TK_IDENT) {
+        Token *identToken = token;
+        token = token->next;
+        return identToken;
+    }
+
+    // ひとまず0を返す 当初returnを省略してたら、謎のアドレスが返されていたので。
+    return 0;
 }
 
 //新しいトークンを作成してcurにつなげる
