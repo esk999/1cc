@@ -77,6 +77,18 @@ bool at_eof(){
     return false;
 }
 
+//変数名の長さを取得する関数
+int getLVarlength(char *p){
+    char *target = p;
+    int length = 0; //長さのカウンタ
+
+    while('a' <= *target && *target <= 'z'){
+            length++;  //カウントを1増やす
+            target++; //次の文字に進める
+    }
+    return length;
+}
+
 Token *consume_ident(){
     if(token->kind == TK_IDENT) {
         Token *identToken = token;
@@ -102,8 +114,7 @@ bool startswitch(char *p, char *q){
 }
 
 //入力文字列pをトークナイズしてそれを返す
-void tokenize(){
-    char *p = user_input;
+void tokenize(char *p){
     Token head;
     head.next = NULL;
     Token *cur = &head;
@@ -119,7 +130,7 @@ void tokenize(){
         if(startswitch(p, "==") || startswitch(p, "!=") ||
             startswitch(p, "<=") || startswitch(p, ">=")){
             cur = new_token(TK_RESERVED, cur, p);
-            cur -> len = 2;
+            cur->len = 2;
             p += 2; //2個進める
             continue;;
         }
@@ -134,20 +145,19 @@ void tokenize(){
         //数値の場合
         if(isdigit(*p)){
             cur = new_token(TK_NUM, cur, p);
-            char *q = p;
             cur->val = strtol(p, &p, 10);
-            cur->len = p - q;
             continue;
         }
 
         //変数
         if('a' <= *p && *p <='z') {
-            cur = new_token(TK_IDENT, cur, p++);
-            cur->len = 1;
+            int length = getLVarlength(p);
+            cur = new_token(TK_IDENT, cur, p);
+            cur->len = length; //ノードの長さをlengthにする
+            p = p + length; //lengthの分だけ文字を進める
             continue;
         }
-
-        error_at(p, "invalid token");
+        error_at(p, "トークナイズできません");
     }
     
     new_token(TK_EOF, cur, p);

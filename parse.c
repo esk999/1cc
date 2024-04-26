@@ -16,6 +16,25 @@ Node *unary();
 Node *primary();
 Node *assign();
 
+//変数名を名前で探す．見つからなかった場合NULLを返す
+LVar *find_lvar(Token *token){
+    for(LVar *var = locals; var; var = var->next){
+        if(var->len == token->len && !memcmp(var->name, token->str, token->len)){
+            return var;
+        }     
+    }
+    return NULL; 
+}
+
+//最後のローカル変数を取得
+LVar *getlastLocalsVar(){
+    LVar *tmp = locals;
+    while (tmp->next){
+        tmp = tmp->next;
+    }
+    return tmp;
+}
+
 //左辺と右辺を受け取る2項演算子
 Node *new_node(NodeKind kind, Node *lhs, Node *rhs){
     Node *node = calloc(1, sizeof(Node));
@@ -59,7 +78,6 @@ Node *assign() {
     if(consume("=")) {
         return new_node(ND_ASSIGN, node, assign());
     }
-
     return node;
 }
 
@@ -141,11 +159,10 @@ Node *mul(){
 Node *unary(){
     if(consume("+")){
         return primary(); // +xをxに変換
-
     }
     if(consume("-")){
         // -xを0-xに変換
-        return new_node(ND_SUB, new_node_num(0), unary());
+        return new_node(ND_SUB, new_node_num(0), primary());
     }
     return primary();
 }
@@ -163,7 +180,20 @@ Node *primary(){
     if(tok) {
         Node *node = calloc(1, sizeof(Node));
         node->kind = ND_LVAR;
-        node->offset = (tok->str[0] - 'a' + 1) * 8;
+        
+        LVar *lvar = find_lvar(tok);
+        if(lvar){
+            node->offset = lvar->offset;
+        }
+        else{
+            lvar = calloc(1, sizeof(LVar));
+            lvar->name = tok->str;
+            lvar->len = tok->len;
+            LVar *prevVar = getlastLocalsVar();
+            lvar->offset = prevVar->offset + 8;
+            prevVar->next = lvar;
+            node->offset = lvar->offset;
+        }
         return node;
     }
 
