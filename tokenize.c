@@ -106,14 +106,12 @@ Token *consume_ident(){
     return NULL;
 }
 
-Token *consume_return(){
-    if(token->kind == TK_RETURN) {
-        Token *returnToken = token;
-        token = token->next;
-        return returnToken;
+bool consume_return(){
+    if(token->kind != TK_RETURN) {
+        return false;
     }
-
-    return NULL;
+    token = token->next;
+    return true;
 }
 
 //新しいトークンを作成してcurにつなげる
@@ -170,7 +168,7 @@ void tokenize(char *p){
         //変数より先に判定するようにした
         //return    
         if(strncmp(p, "return", 6) == 0 && !is_alnum(p[6])){
-            cur = new_token(TK_RESERVED, cur, p);
+            cur = new_token(TK_RETURN, cur, p);
             cur->len = 6; //returnの文字数にする
             p = p + 6; //returnの文字数分進める
             continue;

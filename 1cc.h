@@ -85,6 +85,6 @@ Token *new_token(TokenKind kind, Token *cur, char *str);
 bool startswitch(char *p, char *q);
 void tokenize();
 Token *consume_ident();
-Token *consume_return();
+bool consume_return();
 //コード生成    codegen.c
 void gen(Node *node);
