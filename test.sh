@@ -49,5 +49,9 @@ assert 4 "n=1; m=3; n+m;"
 assert 5 "bar=2+3;"
 assert 6 "1 + (2+3);"
 assert 6 "foo=1; bar=2+3; foo + bar;"
-
+assert 33 "b=1; b=2; c=31; b+c;"
+assert 4 "return 4; 1; 2;"
+assert 5 "1; return 5; 3;"
+assert 4 "1;5;return 4;"
+assert 6 "foo=1; bar=2+3; return foo + bar;"
 echo OK

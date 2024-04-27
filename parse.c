@@ -62,8 +62,16 @@ void program(){
 }
 
 Node *stmt(){
-    Node *node = expr();
-    expect(";");
+    Node *node = node;
+    if(consume("return")){     //returnトークンを使ったら
+        node = calloc(1, sizeof(Node));
+        node->kind = ND_RETURN; //ノードの種類をreturnにする
+        node->lhs = expr();
+    }
+    else{
+        node = expr();
+    }
+    expect(";"); //最後の文字は;が来るはず
     return node;
 }
 

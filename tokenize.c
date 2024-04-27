@@ -49,10 +49,10 @@ bool consume(char *op){
 それ以外の場合はエラーを報告する．
 */
 void expect(char *op){
-    if(token->kind != TK_RESERVED || 
+    if(token->kind != TK_RESERVED ||
         strlen(op) != token->len ||
         memcmp(token->str, op, token->len)){
-        error_at(token->str, "expected \"%s\"", op);
+        error_at(token->str, "\"%s\"ではありません", op);
     }
     token = token->next;
 }
@@ -63,7 +63,7 @@ void expect(char *op){
 */
 int expect_number(){
     if(token->kind != TK_NUM){
-        error_at(token->str, "expected a number");
+        error_at(token->str, "数ではありません");
     }
     int val = token->val;
     token = token->next;
@@ -89,11 +89,28 @@ int getLVarlength(char *p){
     return length;
 }
 
+int is_alnum(char c){
+    return ('a' <= c && c <= 'z') ||
+           ('A' <= c && c <= 'Z') ||
+           ('0' <= c && c <= '9') ||
+           (c == '_');
+}
+
 Token *consume_ident(){
     if(token->kind == TK_IDENT) {
         Token *identToken = token;
         token = token->next;
         return identToken;
+    }
+
+    return NULL;
+}
+
+Token *consume_return(){
+    if(token->kind == TK_RETURN) {
+        Token *returnToken = token;
+        token = token->next;
+        return returnToken;
     }
 
     return NULL;
@@ -149,7 +166,18 @@ void tokenize(char *p){
             continue;
         }
 
+        //予約語
+        //変数より先に判定するようにした
+        //return    
+        if(strncmp(p, "return", 6) == 0 && !is_alnum(p[6])){
+            cur = new_token(TK_RESERVED, cur, p);
+            cur->len = 6; //returnの文字数にする
+            p = p + 6; //returnの文字数分進める
+            continue;
+        }
+
         //変数
+        //aからzで始まる変数
         if('a' <= *p && *p <='z') {
             int length = getLVarlength(p);
             cur = new_token(TK_IDENT, cur, p);
@@ -159,7 +187,7 @@ void tokenize(char *p){
         }
         error_at(p, "トークナイズできません");
     }
-    
+
     new_token(TK_EOF, cur, p);
     token = head.next;
     return;
