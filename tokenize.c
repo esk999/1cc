@@ -205,6 +205,13 @@ void tokenize(char *p){
             continue;
         }
 
+        if(strncmp(p, "for", 3) == 0 && !is_alnum(p[3])){
+            cur = new_token(TK_FOR, cur, p);
+            cur->len = 3; //forの文字数にする
+            p = p + 3;    //forの文字数分進める
+            continue;
+        }
+
         //変数
         //aからzで始まる変数
         if('a' <= *p && *p <='z') {

@@ -98,9 +98,34 @@ void gen(Node *node){
             // ループするために開始ラベルにジャンプする
             printf("    jmp .Lbegin%03d\n", current_label_index);
 
-            printf(".Lend%03d:\n", current_label_index);               // ジャンプ先（処理終わりラベル）
+            printf(".Lend%03d:\n", current_label_index);              // ジャンプ先（処理終わりラベル）
             return;
 
+        case ND_FOR:
+            // for(node->initialize; node->condition; node->afterthought) node->lhsとなっている
+            // 先にnode->initializeのコードを作る
+            gen(node->initialize);
+            // for文の始まりのラベル
+            printf(".Lbegin%03d:\n", current_label_index);
+            // node->conditionのコードを作る
+            gen(node->condition);
+            // node->conditionのアドレスがスタックトップに残っているのでポップする
+            printf("    pop rax\n");
+            // raxと0の値を比べる
+            printf("    cmp rax, 0\n");
+            // raxの値が0ならwhileの条件は偽なので，node->lhsの処理は行わず，終わりラベルにジャンプ
+            printf("    je .Lend%03d\n", current_label_index);        // ゼロフラグが立っていれば.Lendラベルにジャンプ
+            
+            // node->lhsのコードを作る　処理を先に行う
+            gen(node->lhs);
+            // node->afterthougtのコードを作る
+            gen(node->afterthought);
+            
+            // ループするために開始ラベルにジャンプする
+            printf("    jmp .Lbegin%03d\n", current_label_index);
+
+            printf(".Lend%03d:\n", current_label_index);              // ジャンプ先（処理終わりラベル）
+            return;
     }
 
     gen(node->lhs);     // 左の木を優先　// ノードの左辺の値をスタックにプッシュ

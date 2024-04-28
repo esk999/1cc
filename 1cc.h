@@ -15,6 +15,7 @@ typedef enum{
     TK_IF,          //ifトークン
     TK_ELSE,        //elseトークン
     TK_WHILE,       //whileトークン
+    TK_FOR,         //forトークン
 } TokenKind;
 
 typedef struct Token Token;
@@ -53,6 +54,7 @@ typedef enum{
     ND_IF,      // ifノード
     ND_IFELSE,  // if elseノード
     ND_WHILE,   // whileノード
+    ND_FOR,     // forノード
 } NodeKind;
 
 typedef struct Node Node;
@@ -63,8 +65,9 @@ struct Node{
     Node *rhs;          //右辺
     int val;            //kindがND_NUMの場合のみ扱う
     int offset;         //kindがND_LVARの場合のみ扱う
-    Node *condition;    // while，ifの条件文に使う
-    Node *afterthought; // if-elseの処理文に使う
+    Node *condition;    // while，for，ifの条件文に使う
+    Node *afterthought; // if-else，forの処理文に使う
+    Node *initialize;   // forのみ条件文に使う
 };
 // ローカル変数  
 LVar *locals;

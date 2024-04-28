@@ -61,6 +61,7 @@ void program(){
         // | "return" expr ";"
         // | "if" "(" expr ")" stmt ("else" stmt)?
         // | "while" "(" expr ")" stmt
+        // | "for" "(" expr? ";" expr? ";" expr? ")" stmt
 Node *stmt(){
     Node *node = node;
     
@@ -84,7 +85,6 @@ Node *stmt(){
         if(consume_kind(TK_ELSE)){
             node->kind = ND_IFELSE;
             node->afterthought = stmt(); // elseの処理文
-            
         }
     }
 
@@ -95,6 +95,26 @@ Node *stmt(){
         expect("(");
         node->condition = expr();        // 条件文をexprにする
         expect(")");
+        node->lhs = stmt();
+    }
+
+    // for(node->initialize; node->condition; node->afterthought) node->lhs
+    else if(consume_kind(TK_FOR)){
+        node = calloc(1, sizeof(Node));
+        node->kind = ND_FOR;
+        expect("(");
+        if(!consume(";")){
+            node->initialize = expr();
+            expect(";");
+        }
+        if(!consume(";")){
+            node->condition = expr();
+            expect(";");
+        }
+        if(!consume(")")){
+            node->afterthought = expr();
+            expect(")");
+        }
         node->lhs = stmt();
     }
 
