@@ -51,19 +51,6 @@ bool at_eof(){
     return false;
 }
 
-// 変数名の長さを取得する関数
-// 小文字のみ
-int getLVarlength(char *p){
-    char *target = p; // *targetのさす位置をpの先頭にする
-    int length = 0; //長さのカウンタ
-
-    while('a' <= *target && *target <= 'z'){ // targetがさす文字がaからzにある場合進める
-            length++;  //カウントを1増やす
-            target++;  //次の文字に進める
-    }
-    return length;
-}
-
 // 与えられた文字が英数字かアンダースコアかどうかを判定
 int is_alnum(char c){
     return ('a' <= c && c <= 'z') ||
@@ -186,12 +173,14 @@ void tokenize(char *p){
         }
 
         //変数
-        //aからzで始まる変数
-        if('a' <= *p && *p <='z') {
-            int length = getLVarlength(p); // pの文字の長さを取得
+        if(is_alnum(*p)) {
+            int varlen = 0;
+            while (is_alnum(p[varlen])){ // 変数名の長さを取得
+                varlen += 1;
+            }
             cur = new_token(TK_IDENT, cur, p);
-            cur->len = length; //ノードの長さをlengthにする
-            p = p + length; //lengthの分だけ文字を進める
+            cur->len = varlen;  //ノードの長さをvarlenにする
+            p = p + varlen;     //varlenの分だけ文字を進める
             continue;
         }
         // それ以外の場合

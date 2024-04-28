@@ -64,7 +64,7 @@ assert 5 "a=2; b=3; if(b>=a) a+b; else if(b<a) return 4; else return 1;"
 assert 10 "a=0; while(a<10) a=a+1; return a;"
 assert 10 "a=0; for(i=0; i<10; i=i+1) a = a + 1; return a;"
 assert 100 "a=0; for(i=0; i<10; i=i+1) a = a + 1; return a*i;"
-
+assert 10 "num1 = 1; num2 = 4; num3 = 2; return (num1 + num2) * num3;"
 #========
 # block
 assert 15 "x=0;
@@ -84,7 +84,7 @@ return x;"
 assert 1 "x=0;
 for(i=0;i<10;i=i+1)
 {
-  a=1;
+  a1=1;
   if (i<5)
   {
     x=x+1;
@@ -94,7 +94,7 @@ for(i=0;i<10;i=i+1)
     x=x+2;
   }
 }
-return a;"
+return a1;"
 assert 17 "x=0;
 for(i=0;i<10;i=i+1)
 {
