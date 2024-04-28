@@ -81,7 +81,7 @@ void expect(char *op);
 int expect_number();
 bool at_eof();
 Token *new_token(TokenKind kind, Token *cur, char *str);
-void tokenize();
+void tokenize(char *p);
 Token *consume_ident();
 bool consume_return();
 bool consume_if();
