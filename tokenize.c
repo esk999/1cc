@@ -198,6 +198,13 @@ void tokenize(char *p){
             continue;
         }
 
+        if(strncmp(p, "while", 5) == 0 && !is_alnum(p[5])){
+            cur = new_token(TK_WHILE, cur, p);
+            cur->len = 5; //whileの文字数にする
+            p = p + 5;    //whileの文字数分進める
+            continue;
+        }
+
         //変数
         //aからzで始まる変数
         if('a' <= *p && *p <='z') {

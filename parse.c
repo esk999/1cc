@@ -60,8 +60,11 @@ void program(){
 // 生成規則: stmt = expr ";" 
         // | "return" expr ";"
         // | "if" "(" expr ")" stmt ("else" stmt)?
+        // | "while" "(" expr ")" stmt
 Node *stmt(){
     Node *node = node;
+    
+    // return node->lhs
     if(consume_kind(TK_RETURN)){       // returnトークンを使ったら
         node = calloc(1, sizeof(Node));
         node->kind = ND_RETURN;        // ノードの種類をreturnにする
@@ -69,6 +72,7 @@ Node *stmt(){
         expect(";");
     }
 
+    // if(node->condition) node->lhs
     else if(consume_kind(TK_IF)){
         node = calloc(1, sizeof(Node));
         node->kind = ND_IF;
@@ -76,11 +80,22 @@ Node *stmt(){
         node->condition = expr();        // 条件文
         expect(")");
         node->lhs = stmt();              // ifの処理文
+        // else node->afterthought
         if(consume_kind(TK_ELSE)){
             node->kind = ND_IFELSE;
             node->afterthought = stmt(); // elseの処理文
             
         }
+    }
+
+    // while(node->condition) node->lhs
+    else if(consume_kind(TK_WHILE)){     // whileトークンを使ったら
+        node = calloc(1, sizeof(Node));
+        node->kind = ND_WHILE;           // ノードの種類をwhileにする
+        expect("(");
+        node->condition = expr();        // 条件文をexprにする
+        expect(")");
+        node->lhs = stmt();
     }
 
     else{
