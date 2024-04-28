@@ -17,20 +17,20 @@ typedef enum{
 typedef struct Token Token;
 //トークン型
 struct Token{
-    TokenKind kind; //トークンの型
+    TokenKind kind;        //トークンの型
     struct Token *next;    //次の入力トークン
-    int val;        //kindがTK_NUMの場合，その数値
-    char *str;      //トークン文字列
-    int len;        //トークンの長さ
+    int val;               //kindがTK_NUMの場合，その数値
+    char *str;             //トークン文字列
+    int len;               //トークンの長さ
 };
 
 typedef struct LVar LVar;
 
 struct LVar{
     struct LVar *next; //次の変数かNULL
-    char *name; //変数の名前
-    int len;    //名前の長さ
-    int offset; //RBPからのオフセット
+    char *name;        //変数の名前
+    int len;           //名前の長さ
+    int offset;        //RBPからのオフセット
 };
 
 //ローカル変数  
@@ -38,18 +38,18 @@ LVar *locals;
 
 //抽象構文木のノードの種類
 typedef enum{
-    ND_ADD, // +
-    ND_SUB, // -
-    ND_MUL, // *
-    ND_DIV, // /
-    ND_NUM, // 整数
-    ND_EQ,  // ==
-    ND_NE,  // !=
-    ND_LT,  // <
-    ND_LE,  // <=
-    ND_ASSIGN, // =
-    ND_LVAR,  // ローカル変数
-    ND_RETURN, //returnノード
+    ND_ADD,     // +
+    ND_SUB,     // -
+    ND_MUL,     // *
+    ND_DIV,     // /
+    ND_NUM,     // 整数
+    ND_EQ,      // ==
+    ND_NE,      // !=
+    ND_LT,      // <
+    ND_LE,      // <=
+    ND_ASSIGN,  // =
+    ND_LVAR,    // ローカル変数
+    ND_RETURN,  //returnノード
 } NodeKind;
 
 typedef struct Node Node;
@@ -68,23 +68,20 @@ char *user_input;
 //現在注目しているトークン
 Token *token;
 
-//パーサ
-Node *expr();
+//パーサ parse.c
 Node *code[100];
 void program();
-LVar *find_lvar(Token *token);
 
-//トークナイザ
+//トークナイザ tokenize.c
 void error(char *fmt, ...);
-void error_at(char *loc, char *fmt, ...);
 bool consume(char *op);
 void expect(char *op);
 int expect_number();
 bool at_eof();
 Token *new_token(TokenKind kind, Token *cur, char *str);
-bool startswitch(char *p, char *q);
 void tokenize();
 Token *consume_ident();
 bool consume_return();
+
 //コード生成    codegen.c
 void gen(Node *node);
