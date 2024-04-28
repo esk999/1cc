@@ -130,8 +130,8 @@ void gen(Node *node){
         case ND_BLOCK:
             // blockの配列の長さが空でない限り実行
             while(node->block->len){
-                // 配列の末尾のstmtをsub_nodeにする
-                Node *sub_node = vec_pop(node->block);
+                // 配列の最初のstmtをsub_nodeにする
+                Node *sub_node = vec_get(node->block);
                 // sub_nodeのコードを作る
                 gen(sub_node);
                 // sub_nodeのアドレスがスタックトップに残っているのでポップする

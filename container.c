@@ -34,6 +34,14 @@ void error_at(char *loc, char *fmt, ...){
         }
         p += 1;
     }
+    char msg_header[1024];
+    snprintf(msg_header, sizeof(msg_header), "line:%d", line_index);
+    fprintf(stderr, "%s%s\n", msg_header, buffer);
+    fprintf(stderr, "%*s", (int)strlen(msg_header) + pos + 1, "");
+    fprintf(stderr, "^ ");
+    vfprintf(stderr, fmt, ap);
+    fprintf(stderr, "\n");
+    exit(1);
 }
 
 //エラーを報告するための関数
@@ -73,6 +81,20 @@ void vec_pushi(Vector *v, int val){
 void *vec_pop(Vector *v){
     assert(v->len);                         // Vectorが空でないことを確認
     return v->data[--v->len];               // lenの長さを1つ減らす
+}
+
+void *vec_get(Vector *v){
+    assert(v->len);                         // Vectorが空でないことを確認
+    void *ret = v->data[0];                 // Vectorの最初の要素を戻り値にする
+    Vector *_v = new_vec();                 // 元のベクトルから要素が削除された後の要素を格納するために使用
+    for(int i = 1; i < v->len; i++){        
+        vec_push(_v, v->data[i]);           // 最初の要素が削除された新しいリストを作成
+    }
+    //最初の要素が削除された状態に更新
+    v->data = _v->data;
+    v->capacity = _v->capacity;
+    v->len = _v->len;
+    return ret;
 }
 
 // Vector配列の末尾の要素を参照する

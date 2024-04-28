@@ -32,6 +32,7 @@ Vector *new_vec();
 void vec_push(Vector *v, void *element);
 void vec_pushi(Vector *v, int val);
 void *vec_pop(Vector *v);
+void *vec_get(Vector *v);
 void *vec_last(Vector *v);
 bool vec_contains(Vector *v, void *element);
 bool vec_union1(Vector *v, void *element);
@@ -106,7 +107,7 @@ struct Node{
     Node *condition;    // while，for，ifの条件文に使う
     Node *afterthought; // if-else，forの処理文に使う
     Node *initialize;   // forのみ条件文に使う
-    Vector *block;
+    Vector *block;      // blockに使う
 };
 // ローカル変数  
 LVar *locals;

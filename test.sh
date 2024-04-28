@@ -95,4 +95,19 @@ for(i=0;i<10;i=i+1)
   }
 }
 return a;"
+assert 17 "x=0;
+for(i=0;i<10;i=i+1)
+{
+  j=i*2;
+  if (j<5)
+  {
+    x=x+1;
+  }
+  else
+  {
+    x=x+2;
+  }
+  j=0;
+}
+return x;"
 echo OK
