@@ -11,6 +11,8 @@ void gen_lval(Node *node){
 }
 
 void gen(Node *node){
+    int current_label_index = label_index;
+    label_index += 1;
     switch(node->kind){
         case ND_NUM:
             printf("    push %d\n", node->val); // ノードの値をスタックにプッシュ
@@ -41,18 +43,41 @@ void gen(Node *node){
             return;
 
         case ND_IF:
-            // if(node->lhs) node->rhsとなっている
-            // 先にnode->lhsのコードを作る
-            gen(node->lhs);                      // ifの条件のアドレスをスタックにプッシュ
-            // node->lhsのアドレスがスタックトップに残っているのでポップする
+            // if(node->condeition) node->lhsとなっている
+            // 先にnode->condeitionのコードを作る
+            gen(node->condition);                                      // ifの条件のアドレスをスタックにプッシュ
+            // node->conditionのアドレスがスタックトップに残っているのでポップする
             printf("    pop rax\n");
             // raxと0の値を比べる
             printf("    cmp rax, 0\n");
-            // raxの値が0ならifの条件は偽なので，node->rhsの処理は行わない
-            printf("    je .Lend000\n");        // ゼロフラグが立っていれば.Lend000ラベルにジャンプ
-            // ジャンプしなかった場合，node->rhsのコードを作る
-            gen(node->rhs);
-            printf(".Lend000:\n");               // ジャンプ先
+            // raxの値が0ならifの条件は偽なので，node->lhsの処理は行わない
+            printf("    je .Lend%03d\n", current_label_index);         // ゼロフラグが立っていれば処理終わりラベルにジャンプ
+            // ジャンプしなかった場合，node->lhsのコードを作る
+            gen(node->lhs);
+            printf(".Lend%03d:\n", current_label_index);               // ジャンプ先（処理終わりラベル）
+            return;
+
+        case ND_IFELSE:
+            // if(node->condtion) node->lhs else node->afetrthoughtとなっている
+            // 先にnode->conditionのコードを作る
+            gen(node->condition);                                      // ifの条件のアドレスをスタックにプッシュ
+            // node->conditionのアドレスがスタックトップに残っているのでポップする
+            printf("    pop rax\n");
+            // raxと0の値を比べる
+            printf("    cmp rax, 0\n");
+            // raxの値が0ならifの条件は偽なので，node->lhsの処理は行わず，else文にジャンプ
+            printf("    je .Lelse%03d\n", current_label_index);        // ゼロフラグが立っていれば.Lelseラベルにジャンプ
+            
+            // ジャンプしなかった場合，ifの処理であるnode->lhsのコードを作る
+            gen(node->lhs);
+            // if文の処理をしたら，else文の処理であるnode->afterthoughtの処理は行わない
+            printf("    jmp .Lend%03d\n", current_label_index);
+            
+            // else文の処理　node->afterthoughtのコードを作る
+            printf(".Lelse%03d:\n", current_label_index);               // ジャンプ先（.Lelseラベル）
+            gen(node->afterthought);
+            
+            printf(".Lend%03d:\n", current_label_index);               // ジャンプ先（処理終わりラベル）
             return;
     }
 

@@ -59,29 +59,34 @@ void program(){
 
 // 生成規則: stmt = expr ";" 
         // | "return" expr ";"
-        // | "if" "(" expr ")" stmt
+        // | "if" "(" expr ")" stmt ("else" stmt)?
 Node *stmt(){
     Node *node = node;
-    if(consume_return()){       // returnトークンを使ったら
+    if(consume_kind(TK_RETURN)){       // returnトークンを使ったら
         node = calloc(1, sizeof(Node));
-        node->kind = ND_RETURN; // ノードの種類をreturnにする
-        node->lhs = expr();     // ノード左辺をexprにする
+        node->kind = ND_RETURN;        // ノードの種類をreturnにする
+        node->lhs = expr();            // ノード左辺をexprにする
+        expect(";");
     }
 
-    else if(consume_if()){
+    else if(consume_kind(TK_IF)){
         node = calloc(1, sizeof(Node));
         node->kind = ND_IF;
         expect("(");
-        node->lhs = expr();
+        node->condition = expr();        // 条件文
         expect(")");
-        node->rhs = stmt();
-        return node;
+        node->lhs = stmt();              // ifの処理文
+        if(consume_kind(TK_ELSE)){
+            node->kind = ND_IFELSE;
+            node->afterthought = stmt(); // elseの処理文
+            
+        }
     }
 
     else{
         node = expr();
+        expect(";"); //最後の文字は;が来るはず
     }
-    expect(";"); //最後の文字は;が来るはず
     return node;
 }
 

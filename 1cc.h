@@ -13,6 +13,7 @@ typedef enum{
     TK_EOF,         //入力終わりを表すトークン
     TK_RETURN,      //returnトークン
     TK_IF,          //ifトークン
+    TK_ELSE,        //elseトークン
 } TokenKind;
 
 typedef struct Token Token;
@@ -34,9 +35,6 @@ struct LVar{
     int offset;        //RBPからのオフセット
 };
 
-//ローカル変数  
-LVar *locals;
-
 //抽象構文木のノードの種類
 typedef enum{
     ND_ADD,     // +
@@ -52,23 +50,31 @@ typedef enum{
     ND_LVAR,    // ローカル変数
     ND_RETURN,  // returnノード
     ND_IF,      // ifノード
+    ND_IFELSE,  // if elseノード
 } NodeKind;
 
 typedef struct Node Node;
 //抽象構文木のノードの型
 struct Node{
-    NodeKind kind; //ノードの型
-    Node *lhs;     //左辺
-    Node *rhs;     //右辺
-    int val;       //kindがND_NUMの場合のみ扱う
-    int offset;    //kindがND_LVARの場合のみ扱う
+    NodeKind kind;      //ノードの型
+    Node *lhs;          //左辺
+    Node *rhs;          //右辺
+    int val;            //kindがND_NUMの場合のみ扱う
+    int offset;         //kindがND_LVARの場合のみ扱う
+    Node *condition;    // ifの条件文に使う
+    Node *afterthought; // if-elseの処理文に使う
 };
+// ローカル変数  
+LVar *locals;
 
-//入力プログラム
+// 入力プログラム
 char *user_input;
 
-//現在注目しているトークン
+// 現在注目しているトークン
 Token *token;
+
+// アセンブリの中のラベルインデックス
+int label_index;
 
 //パーサ parse.c
 Node *code[100];
@@ -83,8 +89,7 @@ bool at_eof();
 Token *new_token(TokenKind kind, Token *cur, char *str);
 void tokenize(char *p);
 Token *consume_ident();
-bool consume_return();
-bool consume_if();
+bool consume_kind(int token_kind);
 
 //コード生成    codegen.c
 void gen(Node *node);
