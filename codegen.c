@@ -4,92 +4,92 @@ void gen_lval(Node *node){
     if(node->kind != ND_LVAR){
         error("代入の左辺値が変数ではありません");
     }
-    printf("    mov rax, rbp\n");
-    printf("    sub rax, %d\n", node->offset);
-    printf("    push rax\n");
+    printf("    mov rax, rbp\n");               // ベースポインタをraxに移動
+    printf("    sub rax, %d\n", node->offset);  // raxが変数のメモリアドレスを示す
+    printf("    push rax\n");                   // ローカル変数のアドレスをスタックにプッシュ
     return;
 }
 
 void gen(Node *node){
     switch(node->kind){
         case ND_NUM:
-            printf("    push %d\n", node->val);
+            printf("    push %d\n", node->val); // ノードの値をスタックにプッシュ
             return;
             
         case ND_LVAR:
-            gen_lval(node);
-            printf("    pop rax\n");
-            printf("    mov rax, [rax]\n");
-            printf("    push rax\n");
+            gen_lval(node);                     // ローカル変数のアドレスをスタックにプッシュ
+            printf("    pop rax\n");            // ローカル変数のアドレスをraxレジスタに格納
+            printf("    mov rax, [rax]\n");     // raxのアドレスにある値をraxに格納
+            printf("    push rax\n");           // スタックにプッシュ
             return;
         
         case ND_ASSIGN: // a = 1みたいなパターン
-            gen_lval(node->lhs);
-            gen(node->rhs);
-            printf("    pop rdi\n");
-            printf("    pop rax\n");
-            printf("    mov [rax], rdi\n");
-            printf("    push rdi\n");
+            gen_lval(node->lhs);                // 左辺のローカル変数のアドレスをスタックにプッシュ
+            gen(node->rhs);                     // 右辺の値をスタックにプッシュ
+            printf("    pop rdi\n");            // 右辺の値をrdiに格納
+            printf("    pop rax\n");            // 左辺のアドレスをraxに格納
+            printf("    mov [rax], rdi\n");     // 左辺のアドレスに右辺の値を格納
+            printf("    push rdi\n");           // 代入された値をスタックにプッシュ
             return;
             
-        case ND_RETURN:
-            gen(node->lhs);
-            printf("    pop rax\n");
-            printf("    mov rsp, rbp\n");
-            printf("    pop rbp\n");
-            printf("    ret\n");
+        case ND_RETURN: //return 4みたいなパターン
+            gen(node->lhs);                     // return文の戻り値を表す式のアドレスをスタックにプッシュ
+            printf("    pop rax\n");            // 戻り値を表す式のアドレスをraxレジスタに格納
+            printf("    mov rsp, rbp\n");       // ベースポインタの値をスタックポインタの値に格納
+            printf("    pop rbp\n");            // 前の関数のrbpの値を復元
+            printf("    ret\n");                // 現在の関数から呼び出し元の関数に戻る
             return;
     }
 
-    gen(node->lhs);     //左の木を優先
-    gen(node->rhs);
+    gen(node->lhs);     // 左の木を優先　// ノードの左辺の値をスタックにプッシュ
+    gen(node->rhs);     // ノードの右辺の値をスタックにプッシュ
 
-    printf("    pop rdi\n");
-    printf("    pop rax\n");
+    printf("    pop rdi\n");    // rdiにスタックの値を格納
+    printf("    pop rax\n");    // raxにスタックの値を格納
 
-    //ノードが+-*/によってアセンブリのコードを変える
+    // ノードが+, -, *, /, <, =<, =, !=によってアセンブリのコードを変える
     switch (node->kind){
     case ND_ADD:
-        printf("    add rax, rdi\n");
+        printf("    add rax, rdi\n");   // raxとrdiの和をraxに格納
         break;
     
     case ND_SUB:
-        printf("    sub rax, rdi\n");
+        printf("    sub rax, rdi\n");   // raxとrdiの差をraxに格納
         break;
 
     case ND_MUL:
-        printf("    imul rax, rdi\n");
+        printf("    imul rax, rdi\n");  // raxとrdiの積をraxに格納
         break;
     
     case ND_DIV:
-        printf("    cqo\n");
-        printf("    idiv rdi\n");
+        printf("    cqo\n");            // rdxとraxの値を128ビットとみなし，
+        printf("    idiv rdi\n");       // rdiで割ったときの商をraxに格納
         break;
 
     case ND_EQ:
-        printf("    cmp rax, rdi\n");
-        printf("    sete al\n");
-        printf("    movzb rax, al\n");
+        printf("    cmp rax, rdi\n");   // raxとrdiレジスタの値を比べる
+        printf("    sete al\n");        // レジスタの値が同じだった場合，alを1にする（seteは8ビットレジスタしか取れない）
+        printf("    movzb rax, al\n");  // raxの上位56ビットを0クリアしながら，alの値8ビットを格納
         break;
     
     case ND_NE:
-        printf("    cmp rax, rdi\n");
-        printf("    setne al\n");
-        printf("    movzb rax, al\n");
+        printf("    cmp rax, rdi\n");   // raxとrdiレジスタの値を比べる
+        printf("    setne al\n");       // レジスタの値が違った場合，alを1にする（setneは8ビットレジスタしか取れない）
+        printf("    movzb rax, al\n");  // raxの上位56ビットを0クリアしながら，alの値8ビットを格納
         break;
 
     case ND_LT:
-        printf("    cmp rax, rdi\n");
-        printf("    setl al\n");
-        printf("    movzb rax, al\n");
+        printf("    cmp rax, rdi\n");   // raxとrdiレジスタの値を比べる
+        printf("    setl al\n");        // raxレジスタの値がrdiレジスタの値より小さい場合，alを1にする（setlは8ビットレジスタしか取れない）
+        printf("    movzb rax, al\n");  // raxの上位56ビットを0クリアしながら，alの値8ビットを格納
         break;
 
     case ND_LE:
-        printf("    cmp rax, rdi\n");
-        printf("    setle al\n");
-        printf("    movzb rax, al\n");
+        printf("    cmp rax, rdi\n");   // raxとrdiレジスタの値を比べる
+        printf("    setle al\n");       // raxレジスタの値がrdiレジスタの値以下の場合，alを1にする（setleは8ビットレジスタしか取れない）
+        printf("    movzb rax, al\n");  // raxの上位56ビットを0クリアしながら，alの値8ビットを格納
         break;
     }
 
-    printf("    push rax\n");
+    printf("    push rax\n");           // raxの値をスタックにプッシュ
 }

@@ -1,12 +1,6 @@
 #include "1cc.h"
 
-//ここから再帰下降構文解析の実装
-
-//
-//パーサー
-//
-Node *new_node(NodeKind kind, Node *lhs, Node *rhs);
-Node *new_node_num(int val);
+Node *expr();
 Node *stmt();
 Node *equality();
 Node *relational();
@@ -26,13 +20,13 @@ LVar *find_lvar(Token *token){
     return NULL; 
 }
 
-//最後のローカル変数を取得
-LVar *getlastLocalsVar(){
-    LVar *tmp = locals;
-    while (tmp->next){
-        tmp = tmp->next;
+//最後のローカル変数を位置を取得
+LVar *getlastLVar(){
+    LVar *tmp = locals; // ローカル変数の位置を取得
+    while (tmp->next){  // 次のローカル変数がある限り進む
+        tmp = tmp->next;    
     }
-    return tmp;
+    return tmp;         // 最後のローカル変数の位置を返す
 }
 
 //左辺と右辺を受け取る2項演算子
@@ -52,21 +46,24 @@ Node *new_node_num(int val){
     return node;
 }
 
-//
+//　ここからパース
+
+// パースの結果を保存しておく
 void program(){
     int i = 0;
     while(!at_eof()){
         code[i++] = stmt();
     }
-    code[i] = NULL;
+    code[i] = NULL; //配列の末尾をNULLにする
 }
 
+// 生成規則: stmt = expr ";" | "return" expr ";"
 Node *stmt(){
     Node *node = node;
-    if(consume_return()){     //returnトークンを使ったら
+    if(consume_return()){       // returnトークンを使ったら
         node = calloc(1, sizeof(Node));
-        node->kind = ND_RETURN; //ノードの種類をreturnにする
-        node->lhs = expr();
+        node->kind = ND_RETURN; // ノードの種類をreturnにする
+        node->lhs = expr();     // ノード左辺をexprにする
     }
     else{
         node = expr();
@@ -163,7 +160,7 @@ Node *mul(){
     }
 }
 
-// 生成規則: unary = ("+" | "-")? unary | primary
+// 生成規則: unary = ("+" | "-")? primary
 Node *unary(){
     if(consume("+")){
         return primary(); // +xをxに変換
@@ -175,7 +172,7 @@ Node *unary(){
     return primary();
 }
 
-//生成規則: primary = num | "(" expr ")"
+//生成規則: primary = num | ident | "(" expr ")"
 Node *primary(){
     //次のトークンが"("なら"(" exrp ")
     if(consume("(")){
@@ -185,22 +182,22 @@ Node *primary(){
     }
 
     Token *tok = consume_ident();
-    if(tok) {
+    if(tok) { // 次のトークンがIDENTの場合
         Node *node = calloc(1, sizeof(Node));
-        node->kind = ND_LVAR;
+        node->kind = ND_LVAR;        //ノードを変数として扱う
         
-        LVar *lvar = find_lvar(tok);
-        if(lvar){
-            node->offset = lvar->offset;
+        LVar *lvar = find_lvar(tok); // 同じ名前の変数がないか確認
+        if(lvar){ // あった場合
+            node->offset = lvar->offset;   // 以前の変数のoffsetを使う
         }
         else{
             lvar = calloc(1, sizeof(LVar));
-            lvar->name = tok->str;
-            lvar->len = tok->len;
-            LVar *prevVar = getlastLocalsVar();
-            lvar->offset = prevVar->offset + 8;
-            prevVar->next = lvar;
-            node->offset = lvar->offset;
+            lvar->name = tok->str;              // トークン文字列を新しい変数に設定
+            lvar->len = tok->len;               // トークン文字列の長さを変数に設定
+            LVar *prevVar = getlastLVar();      // 最後の変数を取得
+            lvar->offset = prevVar->offset + 8; // 新しい変数のオフセットを最後のローカル変数のオフセットの+8に設定
+            prevVar->next = lvar;               // 最後の変数の次を新しい変数にして，リストを繋げる
+            node->offset = lvar->offset;        // ノードのオフセットを新しい変数のオフセットと同じにする
         }
         return node;
     }
