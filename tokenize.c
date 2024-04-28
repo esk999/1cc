@@ -110,10 +110,20 @@ Token *consume_ident(){
     return NULL;
 }
 
-// 次のトークンがRETURNのでないときは，falseを返す
+// 次のトークンがRETURNでないときは，falseを返す
 // それ以外の場合は，tureを返しトークンを1つ読み進める
 bool consume_return(){
     if(token->kind != TK_RETURN) {
+        return false;
+    }
+    token = token->next;
+    return true;
+}
+
+// 次のトークンがIFでないときは，falseを返す
+// それ以外の場合は，tureを返しトークンを1つ読み進める
+bool consume_if(){
+    if(token->kind != TK_IF) {
         return false;
     }
     token = token->next;
@@ -181,6 +191,13 @@ void tokenize(char *p){
             cur = new_token(TK_RETURN, cur, p);
             cur->len = 6; //returnの文字数にする
             p = p + 6;    //returnの文字数分進める
+            continue;
+        }
+
+        if(strncmp(p, "if", 2) == 0 && !is_alnum(p[2])){
+            cur = new_token(TK_IF, cur, p);
+            cur->len = 2; //returnの文字数にする
+            p = p + 2;    //returnの文字数分進める
             continue;
         }
 

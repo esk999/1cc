@@ -57,7 +57,9 @@ void program(){
     code[i] = NULL; //配列の末尾をNULLにする
 }
 
-// 生成規則: stmt = expr ";" | "return" expr ";"
+// 生成規則: stmt = expr ";" 
+        // | "return" expr ";"
+        // | "if" "(" expr ")" stmt
 Node *stmt(){
     Node *node = node;
     if(consume_return()){       // returnトークンを使ったら
@@ -65,6 +67,17 @@ Node *stmt(){
         node->kind = ND_RETURN; // ノードの種類をreturnにする
         node->lhs = expr();     // ノード左辺をexprにする
     }
+
+    else if(consume_if()){
+        node = calloc(1, sizeof(Node));
+        node->kind = ND_IF;
+        expect("(");
+        node->lhs = expr();
+        expect(")");
+        node->rhs = stmt();
+        return node;
+    }
+
     else{
         node = expr();
     }

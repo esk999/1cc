@@ -39,6 +39,21 @@ void gen(Node *node){
             printf("    pop rbp\n");            // 前の関数のrbpの値を復元
             printf("    ret\n");                // 現在の関数から呼び出し元の関数に戻る
             return;
+
+        case ND_IF:
+            // if(node->lhs) node->rhsとなっている
+            // 先にnode->lhsのコードを作る
+            gen(node->lhs);                      // ifの条件のアドレスをスタックにプッシュ
+            // node->lhsのアドレスがスタックトップに残っているのでポップする
+            printf("    pop rax\n");
+            // raxと0の値を比べる
+            printf("    cmp rax, 0\n");
+            // raxの値が0ならifの条件は偽なので，node->rhsの処理は行わない
+            printf("    je .Lend000\n");        // ゼロフラグが立っていれば.Lend000ラベルにジャンプ
+            // ジャンプしなかった場合，node->rhsのコードを作る
+            gen(node->rhs);
+            printf(".Lend000:\n");               // ジャンプ先
+            return;
     }
 
     gen(node->lhs);     // 左の木を優先　// ノードの左辺の値をスタックにプッシュ

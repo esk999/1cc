@@ -54,4 +54,9 @@ assert 4 "return 4; 1; 2;"
 assert 5 "1; return 5; 3;"
 assert 4 "1;5;return 4;"
 assert 6 "foo=1; bar=2+3; return foo + bar;"
+assert 4 "a=1; if(a==1) return 4;"
+assert 3 "a=0; if(a!=1) return 3;"
+assert 3 "a=1; b=2; if(a<b) return 3;"
+assert 5 "a=2; b=3; if(b>=a) a+b;"
+
 echo OK
