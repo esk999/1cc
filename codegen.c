@@ -126,6 +126,18 @@ void gen(Node *node){
 
             printf(".Lend%03d:\n", current_label_index);              // ジャンプ先（処理終わりラベル）
             return;
+
+        case ND_BLOCK:
+            // blockの配列の長さが空でない限り実行
+            while(node->block->len){
+                // 配列の末尾のstmtをsub_nodeにする
+                Node *sub_node = vec_pop(node->block);
+                // sub_nodeのコードを作る
+                gen(sub_node);
+                // sub_nodeのアドレスがスタックトップに残っているのでポップする
+                printf("    pop rax\n");
+            }
+            return;
     }
 
     gen(node->lhs);     // 左の木を優先　// ノードの左辺の値をスタックにプッシュ

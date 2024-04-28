@@ -65,4 +65,34 @@ assert 10 "a=0; while(a<10) a=a+1; return a;"
 assert 10 "a=0; for(i=0; i<10; i=i+1) a = a + 1; return a;"
 assert 100 "a=0; for(i=0; i<10; i=i+1) a = a + 1; return a*i;"
 
+#========
+# block
+assert 15 "x=0;
+for(i=0;i<10;i=i+1)
+{
+  if (i<5)
+  {
+    x=x+1;
+  }
+  else
+  {
+    x=x+2;
+  }
+}
+return x;"
+
+assert 1 "x=0;
+for(i=0;i<10;i=i+1)
+{
+  a=1;
+  if (i<5)
+  {
+    x=x+1;
+  }
+  else
+  {
+    x=x+2;
+  }
+}
+return a;"
 echo OK

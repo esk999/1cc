@@ -62,6 +62,7 @@ void program(){
         // | "if" "(" expr ")" stmt ("else" stmt)?
         // | "while" "(" expr ")" stmt
         // | "for" "(" expr? ";" expr? ";" expr? ")" stmt
+        // | "{" *stmt "}"
 Node *stmt(){
     Node *node = node;
     
@@ -116,6 +117,15 @@ Node *stmt(){
             expect(")");
         }
         node->lhs = stmt();
+    }
+
+    else if(consume("{")){                  // "{"を消費したら
+        node = calloc(1,sizeof(Node));
+        node->kind = ND_BLOCK;              // ノードの種類をblockノード
+        node->block = new_vec();            // ブロックを配列にする
+        while(!consume("}")){               // "}"を消費するまでループ
+            vec_push(node->block, stmt());  // stmtを配列の末尾に追加
+        }
     }
 
     else{
