@@ -235,7 +235,7 @@ Node *unary(){
     return primary();
 }
 
-//生成規則: primary = num | ident | "(" expr ")"
+//生成規則: primary = num | ident "(" ")"? | "(" expr ")"
 Node *primary(){
     //次のトークンが"("なら"(" exrp ")
     if(consume("(")){
@@ -255,12 +255,25 @@ Node *primary(){
         }
         else{
             lvar = calloc(1, sizeof(LVar));
-            lvar->name = tok->str;              // トークン文字列を新しい変数に設定
-            lvar->len = tok->len;               // トークン文字列の長さを変数に設定
-            LVar *prevVar = getlastLVar();      // 最後の変数を取得
-            lvar->offset = prevVar->offset + 8; // 新しい変数のオフセットを最後のローカル変数のオフセットの+8に設定
-            prevVar->next = lvar;               // 最後の変数の次を新しい変数にして，リストを繋げる
-            node->offset = lvar->offset;        // ノードのオフセットを新しい変数のオフセットと同じにする
+            lvar->next = locals;           // 変数の次をローカル変数にする
+            lvar->name = tok->str;         // トークン文字列を新しい変数に設定
+            lvar->len = tok->len;          // トークン文字列の長さを変数に設定
+            if(locals){
+                lvar->offset = locals->offset + 8;  // 新しい変数のオフセットを最後のローカル変数のオフセットの+8に設定
+            }
+            else{
+                lvar->offset = 8;
+            }
+            node->offset = lvar->offset;   // ノードのオフセットを新しい変数のオフセットと同じにする
+            locals = lvar;                 // ローカル変数に変数を入れる
+        }
+        if(consume("(")){
+            node->kind = ND_FUNCTION;
+            node->arguments = new_vec();
+            while(!consume(")")){
+                vec_push(node->arguments, expr());
+                consume(",");
+            }
         }
         return node;
     }

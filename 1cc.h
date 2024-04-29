@@ -94,6 +94,7 @@ typedef enum{
     ND_WHILE,   // whileノード
     ND_FOR,     // forノード
     ND_BLOCK,   // blockノード
+    ND_FUNCTION,// 関数ノード
 } NodeKind;
 
 typedef struct Node Node;
@@ -108,6 +109,7 @@ struct Node{
     Node *afterthought; // if-else，forの処理文に使う
     Node *initialize;   // forのみ条件文に使う
     Vector *block;      // blockに使う
+    Vector *arguments;  // kindがND_FUNCの場合のみ扱う
 };
 // ローカル変数  
 LVar *locals;

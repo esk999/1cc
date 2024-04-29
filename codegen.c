@@ -11,6 +11,7 @@ void gen_lval(Node *node){
 }
 
 void gen(Node *node){
+    int num_args = 0;
     int current_label_index = label_index;
     label_index += 1;
     switch(node->kind){
@@ -137,6 +138,48 @@ void gen(Node *node){
                 // sub_nodeのアドレスがスタックトップに残っているのでポップする
                 printf("    pop rax\n");
             }
+            return;
+        
+        case ND_FUNCTION:
+            num_args = node->arguments->len;
+            while(node->arguments->len){
+                gen(vec_pop(node->arguments));
+            }
+            int arg_index = 0;
+            while(arg_index++ < num_args){
+                switch(arg_index){
+                    case 1:
+                        printf("    pop rdi\n");
+                        break;
+                    
+                    case 2:
+                        printf("    pop rsi\n");
+                        break;
+
+                    case 3:
+                        printf("    pop rdx\n");
+                        break;
+                    
+                    case 4:
+                        printf("    pop rcx\n");
+                        break;
+                    
+                    case 5:
+                        printf("    pop r8\n");
+                        break;
+
+                    case 6:
+                        printf("    pop r9\n");
+                        break;
+                    
+                    default:
+                        error("6つより多い引数はサポートしていません");
+                        break;
+                }
+            }
+            printf("    call %.*s\n", 
+                        locals[(locals->offset - node->offset) / 8].len, 
+                        locals[(locals->offset - node->offset) / 8].name);
             return;
     }
 
