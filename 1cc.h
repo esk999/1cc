@@ -77,24 +77,25 @@ struct LVar{
 
 //抽象構文木のノードの種類
 typedef enum{
-    ND_ADD,     // +
-    ND_SUB,     // -
-    ND_MUL,     // *
-    ND_DIV,     // /
-    ND_NUM,     // 整数
-    ND_EQ,      // ==
-    ND_NE,      // !=
-    ND_LT,      // <
-    ND_LE,      // <=
-    ND_ASSIGN,  // =
-    ND_LVAR,    // ローカル変数
-    ND_RETURN,  // returnノード
-    ND_IF,      // ifノード
-    ND_IFELSE,  // if elseノード
-    ND_WHILE,   // whileノード
-    ND_FOR,     // forノード
-    ND_BLOCK,   // blockノード
-    ND_FUNCTION,// 関数ノード
+    ND_ADD,         // +
+    ND_SUB,         // -
+    ND_MUL,         // *
+    ND_DIV,         // /
+    ND_NUM,         // 整数
+    ND_EQ,          // ==
+    ND_NE,          // !=
+    ND_LT,          // <
+    ND_LE,          // <=
+    ND_ASSIGN,      // =
+    ND_LVAR,        // ローカル変数
+    ND_RETURN,      // returnノード
+    ND_IF,          // ifノード
+    ND_IFELSE,      // if elseノード
+    ND_WHILE,       // whileノード
+    ND_FOR,         // forノード
+    ND_BLOCK,       // blockノード
+    ND_FUNCTION,    // 関数ノード
+    ND_DEFINITION,  // 関数定義
 } NodeKind;
 
 typedef struct Node Node;

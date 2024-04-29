@@ -275,6 +275,13 @@ Node *primary(){
                 consume(",");
             }
         }
+        if(consume("{")){
+            node->kind = ND_DEFINITION;
+            node->block = new_vec();
+            while(!consume("}")){
+                vec_push(node->block, stmt());
+            }
+        }
         return node;
     }
 
