@@ -134,9 +134,9 @@ void tokenize(char *p){
             continue;
         }
 
-        //予約語
-        //変数より先に判定するようにした
-        //return    
+        // 予約語
+        // 変数より先に判定するようにした
+        // return    
         if(strncmp(p, "return", 6) == 0 && !is_alnum(p[6])){
             cur = new_token(TK_RETURN, cur, p);
             cur->len = 6; //returnの文字数にする
@@ -144,13 +144,15 @@ void tokenize(char *p){
             continue;
         }
 
+        // if
         if(strncmp(p, "if", 2) == 0 && !is_alnum(p[2])){
             cur = new_token(TK_IF, cur, p);
             cur->len = 2; //ifの文字数にする
             p = p + 2;    //ifの文字数分進める
             continue;
         }
-
+        
+        // else
         if(strncmp(p, "else", 4) == 0 && !is_alnum(p[4])){
             cur = new_token(TK_ELSE, cur, p);
             cur->len = 4; //elseの文字数にする
@@ -158,6 +160,7 @@ void tokenize(char *p){
             continue;
         }
 
+        // while
         if(strncmp(p, "while", 5) == 0 && !is_alnum(p[5])){
             cur = new_token(TK_WHILE, cur, p);
             cur->len = 5; //whileの文字数にする
@@ -165,6 +168,7 @@ void tokenize(char *p){
             continue;
         }
 
+        // for
         if(strncmp(p, "for", 3) == 0 && !is_alnum(p[3])){
             cur = new_token(TK_FOR, cur, p);
             cur->len = 3; //forの文字数にする
@@ -172,7 +176,7 @@ void tokenize(char *p){
             continue;
         }
 
-        //変数
+        // 変数
         if(is_alnum(*p)) {
             int varlen = 0;
             while (is_alnum(p[varlen])){ // 変数名の長さを取得
