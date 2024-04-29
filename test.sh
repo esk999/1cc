@@ -110,4 +110,31 @@ for(i=0;i<10;i=i+1)
   j=0;
 }
 return x;"
+
+# function call 1
+input="func0();
+return 0;"
+./1cc "$input" > tmp.s
+gcc -o tmp tmp.s test/function_call/callee.s
+printf "$input => "
+./tmp
+
+#========
+# function call 2
+input="func1(3);
+return 0;"
+./1cc "$input" > tmp.s
+gcc -o tmp tmp.s test/function_call/callee.s
+printf "$input => "
+./tmp
+
+#========
+# function call 2
+input="func2(3,6);
+return 0;"
+./1cc "$input" > tmp.s
+gcc -o tmp tmp.s test/function_call/callee.s
+printf "$input => "
+./tmp
+
 echo OK
