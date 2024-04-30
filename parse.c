@@ -257,6 +257,8 @@ Node *primary(){
         return node;
     }
 
+    // 識別子があるかチェック
+    Token *ident = check_ident(token);
     Token *tok = consume_ident();
     if(tok) { // 次のトークンがIDENTの場合
         Node *node = calloc(1, sizeof(Node));
@@ -266,7 +268,7 @@ Node *primary(){
         if(lvar){ // あった場合
             node->offset = lvar->offset;   // 以前の変数のoffsetを使う
         }
-        else{
+        else if(ident){ // 識別子があった場合
             lvar = calloc(1, sizeof(LVar));
             lvar->next = locals;           // 変数の次をローカル変数にする
             lvar->name = tok->str;         // トークン文字列を新しい変数に設定
@@ -280,6 +282,10 @@ Node *primary(){
             node->offset = lvar->offset;   // ノードのオフセットを新しい変数のオフセットと同じにする
             locals = lvar;                 // ローカル変数に変数を入れる
         }
+        else{
+            error("未定義の変数です");
+        }
+
         if(consume("(")){
             node->kind = ND_FUNCTION;
             node->arguments = new_vec();

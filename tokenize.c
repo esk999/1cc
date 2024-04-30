@@ -80,6 +80,18 @@ bool consume_kind(int token_kind){
     return true;
 }
 
+// 識別子があるか確認する
+// あるなら識別子のトークンを返す。ないならNULLを返す
+Token *check_ident(Token *tok){
+    Token *ret;
+    if(tok->kind == TK_INT){
+        ret = tok;
+        token = token->next;
+        return ret;
+    }
+    return NULL;
+}
+
 //新しいトークンを作成してcurにつなげる
 Token *new_token(TokenKind kind, Token *cur, char *str){
     Token *tok = calloc(1, sizeof(Token));
@@ -173,6 +185,14 @@ void tokenize(char *p){
             cur = new_token(TK_FOR, cur, p);
             cur->len = 3; //forの文字数にする
             p = p + 3;    //forの文字数分進める
+            continue;
+        }
+
+        // int
+        if(strncmp(p, "int", 3) == 0 && !is_alnum(p[3])){
+            cur = new_token(TK_INT, cur, p);
+            cur->len = 3;
+            p = p + 3;
             continue;
         }
 

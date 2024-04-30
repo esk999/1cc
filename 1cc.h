@@ -54,6 +54,7 @@ typedef enum{
     TK_ELSE,        //elseトークン
     TK_WHILE,       //whileトークン
     TK_FOR,         //forトークン
+    TK_INT,         //intトークン
 } TokenKind;
 
 typedef struct Token Token;
@@ -138,6 +139,7 @@ bool at_eof();
 Token *new_token(TokenKind kind, Token *cur, char *str);
 void tokenize(char *p);
 Token *consume_ident();
+Token *check_ident(Token *tok);
 bool consume_kind(int token_kind);
 
 //コード生成    codegen.c
