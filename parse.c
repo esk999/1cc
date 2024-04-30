@@ -130,7 +130,9 @@ Node *stmt(){
 
     else{
         node = expr();
-        expect(";"); //最後の文字は;が来るはず
+        if(node->kind != ND_DEFINITION){
+            expect(";"); //関数定義でなければ最後の文字は;が来るはず
+        }
     }
     return node;
 }

@@ -143,45 +143,45 @@ assert(){
 # };
 # "
 
-# assert 3 "
-# minus(i,j){
-#     return i-j;
-# };
-# main(){
-#     return minus(9,6);
-# };"
+assert 3 "
+minus(i,j){
+    return i-j;
+}
+main(){
+    return minus(9,6);
+}"
 
-# # ================
-# # fibonacci
-# input="
-# fibonacci(n)
-# {
-#     if (n==0){
-#         return n;
-#     } else if (n==1){
-#         return n;
-#     } else{
-#         return fibonacci(n - 2) + fibonacci(n - 1);
-#     }
-# };
-# main(){
-#     for(i=0;i<10;i=i+1){
-#         print(fibonacci(i));
-#     }
-#     return 0;
-# };"
+# ================
+# fibonacci
+input="
+fibonacci(n)
+{
+    if (n==0){
+        return n;
+    } else if (n==1){
+        return n;
+    } else{
+        return fibonacci(n - 2) + fibonacci(n - 1);
+    }
+}
+main(){
+    for(i=0;i<10;i=i+1){
+        print(fibonacci(i));
+    }
+    return 0;
+}"
 
-# ./1cc "$input" > tmp.s
-# gcc -o tmp tmp.s test/function_call/callee.s  
-# printf "$input => "
-# ./tmp
+./1cc "$input" > tmp.s
+gcc -o tmp tmp.s test/function_call/callee.s  
+printf "$input => "
+./tmp
 
 assert 3 "
 main(){
 x = 3;
 y = &x;
 return *y; 
-};
+}
 "
 
 assert 3 "
@@ -190,6 +190,6 @@ x = 3;
 y = 5;
 z = &y + 8;
 return *z;
-};
+}
 "
 echo OK
