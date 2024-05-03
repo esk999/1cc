@@ -148,6 +148,7 @@ Node *code[100];
 void program();
 
 //トークナイザ tokenize.c
+bool check_next(char *op);
 bool consume(char *op);
 void expect(char *op);
 int expect_number();

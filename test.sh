@@ -16,6 +16,23 @@ assert(){
     fi
 }
 
+assert_with_helper() {
+    expected="$1"
+    input="$2"
+
+    ./1cc "$input" > tmp.s
+    gcc -o tmp tmp.s test/function_call/callee.s
+    ./tmp
+    actual="$?"
+
+    if [ "$actual" = "$expected" ]; then
+        echo "$input => $actual"
+    else
+        echo "input was $input, $expected expected, but got $actual"
+        exit 1
+    fi
+}
+
 # assert 0 "main(){return 0;};"
 # assert 42 "main(){return 42;};"
 # assert 21 "main(){return 5+20-4;};"
@@ -219,24 +236,50 @@ assert(){
 # }
 # "
 
-assert 3 "
+# assert 3 "
+# int main(){
+#     int x;
+#     int *y;
+#     y = &x;
+#     *y = 3;
+#     return x;
+# }
+# "
+# assert 5 "
+# int main(){
+#     int x;
+#     int *y;
+#     int **z;
+#     y = &x;
+#     z = &y;
+#     **z = 5;
+#     return x;
+# }
+# "
+
+# # ================
+# # ポインタの加算減算
+assert_with_helper 4 "
+int alloc4(int **ptr, int i0, int i1, int i2, int i3);
 int main(){
-    int x;
-    int *y;
-    y = &x;
-    *y = 3;
-    return x;
+    int *p;
+    alloc4(&p, 1, 2, 4, 8);
+    int *q;
+    q = p + 2;
+    return *q;
 }
 "
-assert 5 "
+
+assert_with_helper 8 "
+int alloc4(int **ptr, int i0, int i1, int i2, int i3);
 int main(){
-    int x;
-    int *y;
-    int **z;
-    y = &x;
-    z = &y;
-    **z = 5;
-    return x;
+    int *p;
+    alloc4(&p, 1, 2, 4, 8);
+    int *q;
+    q = p + 2;
+    *q;
+    q = p + 3;
+    return *q;
 }
 "
 

@@ -268,7 +268,7 @@ Node *primary(){
         if(lvar){ // あった場合
             node->offset = lvar->offset;   // 以前の変数のoffsetを使う
         }
-        else if(type || check_next("{")){ // 識別子があった場合
+        else if(type || check_next("{")){ // type:新しく定義する変数か関数 check_next:未定義の関数呼びだし
             lvar = calloc(1, sizeof(LVar));
             lvar->next = locals;           // 変数の次をローカル変数にする
             lvar->name = tok->str;         // トークン文字列を新しい変数に設定
