@@ -82,14 +82,26 @@ bool consume_kind(int token_kind){
 
 // 識別子があるか確認する
 // あるなら識別子のトークンを返す。ないならNULLを返す
-Token *check_ident(Token *tok){
-    Token *ret;
-    if(tok->kind == TK_INT){
-        ret = tok;
-        token = token->next;
-        return ret;
+Type *check_type(){
+    Type *type = NULL;
+    while(1){
+        // int型
+        if(consume_kind(TK_INT)){
+            type = calloc(1, sizeof(Type));
+            type->ty = INT;
+            continue;                       // ループに戻る
+        }
+        // ポインタ
+        else if(consume("*")){
+            Type *ptype = calloc(1, sizeof(Type));
+            ptype->ty = PTR;
+            ptype->ptr_to = type;
+            type = ptype;
+            continue;                       // ループに戻る
+        }
+        break;
     }
-    return NULL;
+    return type;
 }
 
 //新しいトークンを作成してcurにつなげる

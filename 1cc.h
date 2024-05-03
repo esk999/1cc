@@ -43,6 +43,20 @@ void map_puti(Map *map, char *key, int val);
 void *map_get(Map *map, char *key);
 int map_geti(Map *map, char *key, int default_);
 
+
+// 型の種類
+typedef enum{
+    INT, // int
+    PTR, // ポインタ
+} Datatype;
+
+typedef struct Type Type;
+
+struct Type{
+    Datatype ty;    // int型か「～へのポインタ」型
+    Type *ptr_to;   // tyが「～へのポインタ」型であるときのみに使用
+};
+
 //トークンの種類
 typedef enum{
     TK_RESERVED,    //記号
@@ -74,6 +88,7 @@ struct LVar{
     char *name;        //変数の名前
     int len;           //名前の長さ
     int offset;        //RBPからのオフセット
+    Type *type;        //変数の型
 };
 
 //抽象構文木のノードの種類
@@ -115,6 +130,7 @@ struct Node{
     Vector *block;      // blockに使う
     Vector *arguments;  // kindがND_FUNCの場合のみ扱う
 };
+
 // ローカル変数  
 LVar *locals;
 
@@ -139,7 +155,7 @@ bool at_eof();
 Token *new_token(TokenKind kind, Token *cur, char *str);
 void tokenize(char *p);
 Token *consume_ident();
-Token *check_ident(Token *tok);
+Type *check_type();
 bool consume_kind(int token_kind);
 
 //コード生成    codegen.c

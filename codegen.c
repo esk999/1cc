@@ -19,13 +19,19 @@ LVar *find_lvar_by_node(Node *node){
 }
 
 void gen_lval(Node *node){
-    if(node->kind != ND_LVAR){
-        error("代入の左辺値が変数ではありません");
+    // 変数 
+    if(node->kind == ND_LVAR){
+        mov("rax", "rbp");
+        printf("    sub rax, %d\n", node->offset);
+        push("rax");
+        return;
     }
-    mov("rax","rbp");                           // ベースポインタをraxに移動
-    printf("    sub rax, %d\n", node->offset);  // raxが変数のメモリアドレスを示す
-    push("rax");                                // ローカル変数のアドレスをスタックにプッシュ
-    return;
+    // ポインタ変数
+    else if(node->kind = ND_DEREF){
+        gen(node->lhs);
+        return;
+    }
+    error("代入の左辺値が正しくありません");
 }
 
 void gen(Node *node){

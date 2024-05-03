@@ -206,16 +206,37 @@ assert(){
 # }
 # "
 
-assert 42 "
-int foo(int x, int y){
-    return x - y;
-}
+# assert 42 "
+# int foo(int x, int y){
+#     return x - y;
+# }
 
+# int main(){
+#     int x = 52;
+#     int y;
+#     y = foo(x,10);
+#     return y;
+# }
+# "
+
+assert 3 "
 int main(){
-    int x = 52;
-    int y;
-    y = foo(x,10);
-    return y;
+    int x;
+    int *y;
+    y = &x;
+    *y = 3;
+    return x;
+}
+"
+assert 5 "
+int main(){
+    int x;
+    int *y;
+    int **z;
+    y = &x;
+    z = &y;
+    **z = 5;
+    return x;
 }
 "
 
