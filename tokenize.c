@@ -1,5 +1,14 @@
 #include "1cc.h"
 
+// 条件確認でよく使うので関数化
+// 次のトークンが期待した記号の場合は真，それ以外は偽を返す
+bool check_next(char *op){
+    if(token->kind != TK_RESERVED || strlen(op) != token->len || memcmp(token->str, op, token->len)){
+        return false;
+    }
+    return true;
+}
+
 // 次のトークンが期待している記号の時には，トークン1つを読み進めて
 // 真を返す．それ以外の場合には偽を返す．
 
@@ -8,9 +17,7 @@ bool consume(char *op){
     // 複数の文字をトークナイズする場合，長いトークンから先にトークナイズする
     // 文字列が>から始まる場合，>=が>と=に誤ってトークナイズされてしまうから．
    
-    if(token->kind != TK_RESERVED || 
-        strlen(op) != token->len ||
-        memcmp(token->str, op, token->len)){
+    if(!check_next(op)){
         return false;
     }
     token = token -> next;
@@ -22,9 +29,7 @@ bool consume(char *op){
 // それ以外の場合はエラーを報告する．
 
 void expect(char *op){
-    if(token->kind != TK_RESERVED ||
-        strlen(op) != token->len ||
-        memcmp(token->str, op, token->len)){ 
+    if(!check_next(op)){ 
         error_at(token->str, "\"%s\"ではありません", op);
     }
     token = token->next;
