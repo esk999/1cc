@@ -13,6 +13,7 @@ void gen_lval(Node *node){
 void gen(Node *node){
     int current_label_index = label_index;
     label_index += 1;
+    char name[100] = {0}; // いったんここで定義
     switch(node->kind){
         case ND_NUM:
             printf("    push %d\n", node->val); // ノードの値をスタックにプッシュ
@@ -137,6 +138,11 @@ void gen(Node *node){
                 // sub_nodeのアドレスがスタックトップに残っているのでポップする
                 printf("    pop rax\n");
             }
+            return;
+
+        case ND_FUNC:
+            memcpy(name, node->funcname, node->len); 
+            printf("    call %s\n", name);
             return;
     }
 

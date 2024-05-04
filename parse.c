@@ -20,15 +20,6 @@ LVar *find_lvar(Token *token){
     return NULL; 
 }
 
-//最後のローカル変数を位置を取得
-LVar *getlastLVar(){
-    LVar *tmp = locals; // ローカル変数の位置を取得
-    while (tmp->next){  // 次のローカル変数がある限り進む
-        tmp = tmp->next;    
-    }
-    return tmp;         // 最後のローカル変数の位置を返す
-}
-
 //左辺と右辺を受け取る2項演算子
 Node *new_node(NodeKind kind, Node *lhs, Node *rhs){
     Node *node = calloc(1, sizeof(Node));
@@ -119,6 +110,7 @@ Node *stmt(){
         node->lhs = stmt();
     }
 
+    // block
     else if(consume("{")){                  // "{"を消費したら
         node = calloc(1,sizeof(Node));
         node->kind = ND_BLOCK;              // ノードの種類をblockノード
@@ -235,7 +227,7 @@ Node *unary(){
     return primary();
 }
 
-//生成規則: primary = num | ident | "(" expr ")"
+//生成規則: primary = num | ident ("(" ")")? | "(" expr ")"
 Node *primary(){
     //次のトークンが"("なら"(" exrp ")
     if(consume("(")){
@@ -244,8 +236,17 @@ Node *primary(){
         return node;
     }
 
-    Token *tok = consume_ident();
-    if(tok) { // 次のトークンがIDENTの場合
+    Token *tok = consume_kind(TK_IDENT);
+    if(tok){ // 次のトークンがIDENTの場合
+        if(consume("(")){
+            // 関数呼び出し
+            Node *node = calloc(1, sizeof(Node));
+            node->kind = ND_FUNC;
+            node->funcname = tok->str;
+            node->len = tok->len;
+            expect(")");
+            return node;
+        }
         Node *node = calloc(1, sizeof(Node));
         node->kind = ND_LVAR;        //ノードを変数として扱う
         
@@ -255,16 +256,21 @@ Node *primary(){
         }
         else{
             lvar = calloc(1, sizeof(LVar));
-            lvar->name = tok->str;              // トークン文字列を新しい変数に設定
-            lvar->len = tok->len;               // トークン文字列の長さを変数に設定
-            LVar *prevVar = getlastLVar();      // 最後の変数を取得
-            lvar->offset = prevVar->offset + 8; // 新しい変数のオフセットを最後のローカル変数のオフセットの+8に設定
-            prevVar->next = lvar;               // 最後の変数の次を新しい変数にして，リストを繋げる
-            node->offset = lvar->offset;        // ノードのオフセットを新しい変数のオフセットと同じにする
+            lvar->next = locals;
+            lvar->name = tok->str;
+            lvar->len = tok->len;
+            if(locals==NULL){
+                lvar->offset = 8;
+            }
+            else{
+                lvar->offset = locals->offset + 8;
+            }
+            node->offset = lvar->offset;
+            locals = lvar;
         }
+        
         return node;
     }
-
     //そうでないときは数値
     return new_node_num(expect_number());
 }

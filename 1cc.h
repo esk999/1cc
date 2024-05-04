@@ -94,6 +94,7 @@ typedef enum{
     ND_WHILE,   // whileノード
     ND_FOR,     // forノード
     ND_BLOCK,   // blockノード
+    ND_FUNC,    // 関数
 } NodeKind;
 
 typedef struct Node Node;
@@ -108,6 +109,8 @@ struct Node{
     Node *afterthought; // if-else，forの処理文に使う
     Node *initialize;   // forのみ条件文に使う
     Vector *block;      // blockに使う
+    char *funcname;     // ND_FUNCのみ使う
+    int len;            // ND_FUNCのみ使う
 };
 // ローカル変数  
 LVar *locals;
@@ -132,8 +135,7 @@ int expect_number();
 bool at_eof();
 Token *new_token(TokenKind kind, Token *cur, char *str);
 void tokenize(char *p);
-Token *consume_ident();
-bool consume_kind(int token_kind);
+Token *consume_kind(TokenKind kind);
 
 //コード生成    codegen.c
 void gen(Node *node);

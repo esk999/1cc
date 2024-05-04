@@ -6,9 +6,6 @@ int main(int argc, char **argv){
     }
     //現在注目しているトークン
     user_input = argv[1];
-    //ローカル変数格納用の変数の初期設定
-    locals = calloc(1, sizeof(LVar));
-    locals->next = NULL;
     //トークナイズする
     tokenize(user_input);
     //パースする

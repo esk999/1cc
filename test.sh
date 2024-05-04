@@ -110,4 +110,7 @@ for(i=0;i<10;i=i+1)
   j=0;
 }
 return x;"
+
+assert 0 "foo();"
+
 echo OK

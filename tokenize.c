@@ -72,25 +72,13 @@ int is_alnum(char c){
            (c == '_');
 }
 
-//　次のトークンがIDENTの時は，そのトークンのアドレスを返し，トークンを1つ読み進める
-//  それ以外の場合はNULLを返す
-Token *consume_ident(){
-    if(token->kind == TK_IDENT) {
-        Token *identToken = token;
-        token = token->next; // 次のトークンへ行く
-        return identToken;
+Token *consume_kind(TokenKind kind) {
+    if (token->kind != kind) {
+        return NULL;
     }
-    return NULL;
-}
-
-// 次のトークンが期待したトークンでないときは，falseを返す
-// それ以外の場合は，tureを返しトークンを1つ読み進める
-bool consume_kind(int token_kind){
-    if(token->kind != token_kind) {
-        return false;
-    }
+    Token* tok = token;
     token = token->next;
-    return true;
+    return tok;
 }
 
 //新しいトークンを作成してcurにつなげる
