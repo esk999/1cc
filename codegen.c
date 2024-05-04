@@ -151,8 +151,22 @@ void gen(Node *node){
             for(int i = argcnt - 1; i >= 0; i--){
                 printf("    pop %s\n", argRegs[i]);
             }
+            // RSPは16の倍数
+            printf("    mov rax, rsp\n");
+            printf("    and rax, 15\n");          // 下位4ビットだけ残す(16のあまりの部分)
+            printf("    jnz .L.call.%03d\n", id); // 0じゃない場合ジャンプ
+            printf("    mov rax, 0\n");
             printf("    call %s\n", name);
+            // callした返り値がraxにあるので、スタックトップにプッシュする
+            // しないとpop raxによって上書きされてしまった
             printf("    push rax\n");
+            printf("    jmp .L.end.%03d\n", id);
+            printf(".L.call.%03d:\n", id);
+            printf("    sub rsp, 8\n");
+            printf("    mov rax, 0\n");
+            printf("    call %s\n", name);
+            printf("    add rsp, 8\n");
+            printf(".L.end.%03d:\n", id);
             return;
         }
 
