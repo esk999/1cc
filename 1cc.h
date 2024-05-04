@@ -94,7 +94,8 @@ typedef enum{
     ND_WHILE,   // whileノード
     ND_FOR,     // forノード
     ND_BLOCK,   // blockノード
-    ND_FUNC,    // 関数
+    ND_FUNC_CALL,    // 関数
+    ND_FUNC_DEF, // 関数定義
 } NodeKind;
 
 typedef struct Node Node;
@@ -112,11 +113,11 @@ struct Node{
     // Vector *block;      // blockに使う
     // Vector *arguments;  // kindがND_FUNCの場合のみ扱う
     char *funcname;     // ND_FUNCのみ使う
-    int len;            // ND_FUNCのみ使う
+    Node **args;        // ND_FUNC_DEFのみ使う
 };
 // ローカル変数  
-LVar *locals;
-
+extern LVar *locals[];
+extern int cur_func;
 // 入力プログラム
 char *user_input;
 
@@ -129,6 +130,7 @@ int label_index;
 //パーサ parse.c
 Node *code[100];
 void program();
+Node *variable(Token *tok);
 
 //トークナイザ tokenize.c
 bool consume(char *op);

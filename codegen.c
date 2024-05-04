@@ -20,7 +20,7 @@ void gen(Node *node){
     if (!node) return;
     label_index += 1;
     int id = label_index;
-    char name[100] = {0}; // いったんここで定義
+    int argcnt = 0;
     switch(node->kind){
         case ND_NUM:
             printf("    push %d\n", node->val); // ノードの値をスタックにプッシュ
@@ -137,13 +137,10 @@ void gen(Node *node){
         case ND_BLOCK:
             for(int i = 0; node->block[i]; i++){
                 gen(node->block[i]);
-                printf("    pop rax\n");
             }
             return;
 
-        case ND_FUNC:
-            memcpy(name, node->funcname, node->len);
-            int argcnt = 0;
+        case ND_FUNC_CALL:
             for (int i = 0; node->block[i]; i++){
                 gen(node->block[i]);
                 argcnt++;
@@ -156,17 +153,43 @@ void gen(Node *node){
             printf("    and rax, 15\n");          // 下位4ビットだけ残す(16のあまりの部分)
             printf("    jnz .L.call.%03d\n", id); // 0じゃない場合ジャンプ
             printf("    mov rax, 0\n");
-            printf("    call %s\n", name);
-            // callした返り値がraxにあるので、スタックトップにプッシュする
-            // しないとpop raxによって上書きされてしまった
-            printf("    push rax\n");
+            printf("    call %s\n", node->funcname);
             printf("    jmp .L.end.%03d\n", id);
             printf(".L.call.%03d:\n", id);
             printf("    sub rsp, 8\n");
             printf("    mov rax, 0\n");
-            printf("    call %s\n", name);
+            printf("    call %s\n", node->funcname);
             printf("    add rsp, 8\n");
             printf(".L.end.%03d:\n", id);
+            // callした返り値がraxにあるので、スタックトップにプッシュする
+            // しないとpop raxによって上書きされてしまった
+            printf("    push rax\n");
+            return;
+
+        case ND_FUNC_DEF:
+            printf("%s:\n", node->funcname);
+
+            // プロローグ
+            printf("    push rbp\n");     // 現在のベースポインタの値をスタックにプッシュ
+            printf("    mov rbp, rsp\n"); // スタックポインタをrbpにコピー
+            // 引数の値をスタックに積む
+            for(int i = 0; node->args[i]; i++){
+                printf("    push %s\n", argRegs[i]);
+            }
+            // 引数以外の変数分のスタック領域を確保する
+            if(locals[cur_func]){
+                int offset = locals[cur_func][0].offset;
+                offset -= argcnt * 8;
+                printf("    sub rsp, %d\n", offset); 
+            }
+            
+            gen(node->lhs);
+
+            // エピローグ
+            // printf("    mov rax, 0");  // 必要かわからん?
+            printf("    mov rsp, rbp\n"); // ベースポインタの値をrspに移動
+            printf("    pop rbp\n");      // スタックから値をポップし，rbpに格納
+            printf("    ret\n");          // スタックからリターンアドレスをポップする　呼び出し位置に戻る
             return;
         }
 

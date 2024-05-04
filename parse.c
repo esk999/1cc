@@ -1,6 +1,8 @@
 #include "1cc.h"
-
+LVar *locals[100];
+int cur_func=0;
 Node *expr();
+Node *func();
 Node *stmt();
 Node *equality();
 Node *relational();
@@ -12,7 +14,7 @@ Node *assign();
 
 //変数名を名前で探す．見つからなかった場合NULLを返す
 LVar *find_lvar(Token *token){
-    for(LVar *var = locals; var; var = var->next){
+    for(LVar *var = locals[cur_func]; var; var = var->next){
         if(var->len == token->len && !memcmp(token->str, var->name, var->len)){
             return var;
         }     
@@ -40,12 +42,43 @@ Node *new_node_num(int val){
 //　ここからパース
 
 // パースの結果を保存しておく
+// program = func*
 void program(){
     int i = 0;
     while(!at_eof()){
-        code[i++] = stmt();
+        code[i++] = func();
     }
     code[i] = NULL; //配列の末尾をNULLにする
+}
+
+// func = ident "(" ident ")"  stmt 
+Node *func(){
+    cur_func++;
+    Node *node;
+    Token *tok = consume_kind(TK_IDENT);
+    if(tok == NULL){
+        error("関数ではありません");
+    }
+    node = calloc(1, sizeof(Node));
+    node->kind = ND_FUNC_DEF;
+    node->funcname = calloc(100, sizeof(char));
+    node->args = calloc(10, sizeof(Node*));
+    memcpy(node->funcname, tok->str, tok->len);
+    expect("(");
+    for(int i=0; !consume(")"); i++){
+        Token *tok = consume_kind(TK_IDENT);
+        if(tok != NULL){
+            // variable(tok)
+            node->args[i] = variable(tok);
+            memcpy(node->args[i], tok->str, tok->len);
+        }
+        if(consume(")")){
+            break;
+        }
+        expect(",");
+    }
+    node->lhs = stmt();
+    return node;
 }
 
 // 生成規則: stmt = expr ";" 
@@ -248,9 +281,9 @@ Node *primary(){
         if(consume("(")){
             // 関数呼び出し
             Node *node = calloc(1, sizeof(Node));
-            node->kind = ND_FUNC;
-            node->funcname = tok->str;
-            node->len = tok->len;
+            node->kind = ND_FUNC_CALL;
+            node->funcname = calloc(100, sizeof(Node));
+            memcpy(node->funcname, tok->str, tok->len);
             // 引数
             // とりあえず10個まで
             node->block = calloc(10, sizeof(Node));
@@ -263,29 +296,36 @@ Node *primary(){
             }
             return node;
         }
-        Node *node = calloc(1, sizeof(Node));
-        node->kind = ND_LVAR;        //ノードを変数として扱う
-        
-        LVar *lvar = find_lvar(tok); // 同じ名前の変数がないか確認
-        if(lvar){ // あった場合
-            node->offset = lvar->offset;   // 以前の変数のoffsetを使う
-        }
-        else{
-            lvar = calloc(1, sizeof(LVar));
-            lvar->next = locals;
-            lvar->name = tok->str;
-            lvar->len = tok->len;
-            if(locals == NULL){
-                lvar->offset = 8;
-            }
-            else{
-                lvar->offset = locals->offset + 8;
-            }
-            node->offset = lvar->offset;
-            locals = lvar;
-        }
-        return node;
+        // 関数呼び出しでない場合変数
+        return variable(tok);
     }
     //そうでないときは数値
     return new_node_num(expect_number());
+}
+
+
+// 関数の引数の段階で変数を登録する
+Node *variable(Token *tok){
+    Node *node = calloc(1, sizeof(Node));
+    node->kind = ND_LVAR;        //ノードを変数として扱う
+    
+    LVar *lvar = find_lvar(tok); // 同じ名前の変数がないか確認
+    if(lvar){ // あった場合
+        node->offset = lvar->offset;   // 以前の変数のoffsetを使う
+    }
+    else{
+        lvar = calloc(1, sizeof(LVar));
+        lvar->next = locals[cur_func];
+        lvar->name = tok->str;
+        lvar->len = tok->len;
+        if(locals[cur_func] == NULL){
+            lvar->offset = 8;
+        }
+        else{
+            lvar->offset = locals[cur_func]->offset + 8;
+        }
+        node->offset = lvar->offset;
+        locals[cur_func] = lvar;
+    }
+    return node;
 }
