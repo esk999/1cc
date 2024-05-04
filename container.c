@@ -112,7 +112,7 @@ bool vec_contains(Vector *v, void *element){
 }
 
 // Vector配列に要素が重複しないように要素を追加する
-bool vec_unuon1(Vector *v, void *element){
+bool vec_union1(Vector *v, void *element){
     if(vec_contains(v, element)) return false; // すでに値が存在していれば，何もせずfalseを返す
     vec_push(v, element);                      // 存在しなければ，Vector配列の末尾に要素を追加
     return true;                               // 正常終了のtrueを返す
