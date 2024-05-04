@@ -125,8 +125,8 @@ return x;
 "
 
 # func
-assert 1 "return foo();"
-assert 7 "return bar(3, 4);"
-assert 12 "return bar2(3, 4, 5);"
+assert 1 "foo();"
+assert 7 "bar(3, 4);"
+assert 12 "bar2(3, 4, 5);"
 
 echo OK
