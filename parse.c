@@ -55,8 +55,7 @@ void program(){
         // | "for" "(" expr? ";" expr? ";" expr? ")" stmt
         // | "{" *stmt "}"
 Node *stmt(){
-    Node *node = node;
-    
+    Node *node;
     // return node->lhs
     if(consume_kind(TK_RETURN)){       // returnトークンを使ったら
         node = calloc(1, sizeof(Node));
@@ -67,7 +66,7 @@ Node *stmt(){
     }
 
     // if(node->condition) node->lhs
-    else if(consume_kind(TK_IF)){
+    if(consume_kind(TK_IF)){
         node = calloc(1, sizeof(Node));
         node->kind = ND_IF;
         expect("(");
@@ -83,7 +82,7 @@ Node *stmt(){
     }
 
     // while(node->condition) node->lhs
-    else if(consume_kind(TK_WHILE)){     // whileトークンを使ったら
+    if(consume_kind(TK_WHILE)){     // whileトークンを使ったら
         node = calloc(1, sizeof(Node));
         node->kind = ND_WHILE;           // ノードの種類をwhileにする
         expect("(");
@@ -94,7 +93,7 @@ Node *stmt(){
     }
 
     // for(node->initialize; node->condition; node->afterthought) node->lhs
-    else if(consume_kind(TK_FOR)){
+    if(consume_kind(TK_FOR)){
         node = calloc(1, sizeof(Node));
         node->kind = ND_FOR;
         expect("(");
@@ -115,12 +114,12 @@ Node *stmt(){
     }
 
     // block
-    else if(consume("{")){                  // "{"を消費したら
-        node = calloc(1,sizeof(Node));
+    if(consume("{")){                  // "{"を消費したら
+        node = calloc(1, sizeof(Node));
         node->kind = ND_BLOCK;              // ノードの種類をblockノード
         // 100行まで
         node->block = calloc(100, sizeof(Node));
-        for(int i=0; !consume("}"); i++){               // "}"を消費するまでループ
+        for(int i = 0; !consume("}"); i++){               // "}"を消費するまでループ
             node->block[i] = stmt();             // stmtを配列の末尾に追加
         }
         return node;
@@ -246,20 +245,24 @@ Node *primary(){
 
     Token *tok = consume_kind(TK_IDENT);
     if(tok){ // 次のトークンがIDENTの場合
-        // if(consume("(")){
-        //     // 関数呼び出し
-        //     Node *node = calloc(1, sizeof(Node));
-        //     node->kind = ND_FUNC;
-        //     node->funcname = tok->str;
-        //     node->len = tok->len;
-        //     // 引数
-        //     node->arguments = new_vec();
-        //     while(!consume(")")){
-        //         vec_push(node->arguments, expr());
-        //         consume(",");
-        //     }
-        //     return node;
-        // }
+        if(consume("(")){
+            // 関数呼び出し
+            Node *node = calloc(1, sizeof(Node));
+            node->kind = ND_FUNC;
+            node->funcname = tok->str;
+            node->len = tok->len;
+            // 引数
+            // とりあえず10個まで
+            node->block = calloc(10, sizeof(Node));
+            for(int i = 0; !consume(")"); i++){
+                node->block[i] = expr();
+                if (consume(")")){
+                    break;
+                }
+                expect(",");      
+            }
+            return node;
+        }
         Node *node = calloc(1, sizeof(Node));
         node->kind = ND_LVAR;        //ノードを変数として扱う
         

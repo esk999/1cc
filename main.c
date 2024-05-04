@@ -10,8 +10,6 @@ int main(int argc, char **argv){
     tokenize(user_input);
     //パースする
     program();
-    //label_indexを初期化
-    label_index = 0;
     
 
     //アセンブリの前半部分を出力

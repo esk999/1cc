@@ -3,6 +3,13 @@ assert(){
     expected="$1"
     input="$2"
 
+    ./1cc "$input" > tmp.s 2> tmp.err
+    if [ ! -s tmp.s ]; then
+        echo "Compiler error or no output generated:"
+        cat tmp.err
+        exit 1
+    fi
+
     ./1cc "$input" > tmp.s
     cd func
     cc -c func.c
@@ -98,7 +105,9 @@ for(i=0;i<10;i=i+1)
   }
 }
 return a;"
-assert 17 "x=0;
+
+assert 17 "
+x=0;
 for(i=0;i<10;i=i+1)
 {
   j=i*2;
@@ -112,10 +121,12 @@ for(i=0;i<10;i=i+1)
   }
   j=0;
 }
-return x;"
+return x;
+"
 
 # func
-# assert 0 "foo();"
-# assert 7 "bar(3, 4);"
+assert 1 "return foo();"
+assert 7 "return bar(3, 4);"
+assert 12 "return bar2(3, 4, 5);"
 
 echo OK
