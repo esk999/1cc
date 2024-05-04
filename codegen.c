@@ -1,5 +1,17 @@
 #include "1cc.h"
 
+
+// ローカル変数リストからローカル変数を探し，そのポインタを返す
+LVar *find_lvar_by_node(Node *node){
+    LVar *a = locals;
+    int offset = node->offset;
+    while (a){
+        if (a->offset == node->offset) return a;
+        a = a->next;
+    }
+    return NULL;
+}
+
 void gen_lval(Node *node){
     if(node->kind != ND_LVAR){
         error("代入の左辺値が変数ではありません");
@@ -11,6 +23,8 @@ void gen_lval(Node *node){
 }
 
 void gen(Node *node){
+    if (!node) return;
+    LVar *_lvar;
     int current_label_index = label_index;
     label_index += 1;
     char name[100] = {0}; // いったんここで定義
@@ -26,7 +40,7 @@ void gen(Node *node){
             printf("    push rax\n");           // スタックにプッシュ
             return;
         
-        case ND_ASSIGN: // a = 1みたいなパターン
+        case ND_ASSIGN:
             gen_lval(node->lhs);                // 左辺のローカル変数のアドレスをスタックにプッシュ
             gen(node->rhs);                     // 右辺の値をスタックにプッシュ
             printf("    pop rdi\n");            // 右辺の値をrdiに格納
@@ -35,7 +49,7 @@ void gen(Node *node){
             printf("    push rdi\n");           // 代入された値をスタックにプッシュ
             return;
             
-        case ND_RETURN: //return 4みたいなパターン
+        case ND_RETURN:
             gen(node->lhs);                     // return文の戻り値を表す式のアドレスをスタックにプッシュ
             printf("    pop rax\n");            // 戻り値を表す式のアドレスをraxレジスタに格納
             printf("    mov rsp, rbp\n");       // ベースポインタの値をスタックポインタの値に格納
@@ -129,21 +143,24 @@ void gen(Node *node){
             return;
 
         case ND_BLOCK:
-            // blockの配列の長さが空でない限り実行
-            while(node->block->len){
-                // 配列の最初のstmtをsub_nodeにする
-                Node *sub_node = vec_get(node->block);
-                // sub_nodeのコードを作る
-                gen(sub_node);
-                // sub_nodeのアドレスがスタックトップに残っているのでポップする
+            for(int i=0; node->block[i]; i++){
+                gen(node->block[i]);
                 printf("    pop rax\n");
             }
             return;
 
-        case ND_FUNC:
-            memcpy(name, node->funcname, node->len); 
-            printf("    call %s\n", name);
-            return;
+        // case ND_FUNC:
+        //     memcpy(name, node->funcname, node->len); 
+        //     while(node->arguments->len){
+        //         gen(vec_pop(node->arguments));
+        //     }
+        //     // 引数が2つの時
+        //     printf("    pop rsi\n");
+        //     printf("    pop rdi\n");
+        //     _lvar = find_lvar_by_node(node);
+        //     printf("    call %.*s\n", _lvar->len, _lvar->name);
+        //     printf("    push rax\n");    // callした返り値がraxにあるので、スタックトップにプッシュする
+        //     return;
     }
 
     gen(node->lhs);     // 左の木を優先　// ノードの左辺の値をスタックにプッシュ

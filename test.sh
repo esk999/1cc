@@ -4,7 +4,10 @@ assert(){
     input="$2"
 
     ./1cc "$input" > tmp.s
-    cc -o tmp tmp.s
+    cd func
+    cc -c func.c
+    cd ..
+    cc -o tmp tmp.s func/func.o
     ./tmp
     actual="$?"
 
@@ -111,6 +114,8 @@ for(i=0;i<10;i=i+1)
 }
 return x;"
 
-assert 0 "foo();"
+# func
+# assert 0 "foo();"
+# assert 7 "bar(3, 4);"
 
 echo OK

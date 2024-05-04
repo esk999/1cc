@@ -7,41 +7,41 @@
 #include <assert.h>
 #include <stdint.h>
 
-// コンテナ
-// 動的なサイズ変更が可能な配列を実装
-typedef struct Vector Vector;
+// // コンテナ
+// // 動的なサイズ変更が可能な配列を実装
+// typedef struct Vector Vector;
 
-struct Vector{
-    void **data;    // 任意の型のデータを保持する
-    int capacity;   // 保持できる最大の要素数
-    int len;        // 格納されている要素数
-};
+// struct Vector{
+//     void **data;    // 任意の型のデータを保持する
+//     int capacity;   // 保持できる最大の要素数
+//     int len;        // 格納されている要素数
+// };
 
-// キーと値のペアを格納するための単純な連想配列（マップ）を実装
-typedef struct Map Map;
+// // キーと値のペアを格納するための単純な連想配列（マップ）を実装
+// typedef struct Map Map;
 
-struct Map{
-    Vector *keys;   // キー
-    Vector *vals;   // 値
-};
+// struct Map{
+//     Vector *keys;   // キー
+//     Vector *vals;   // 値
+// };
 
 // container.c
 void error_at(char *loc, char *fmt, ...);
 void error(char *fmt, ...);
-Vector *new_vec();
-void vec_push(Vector *v, void *element);
-void vec_pushi(Vector *v, int val);
-void *vec_pop(Vector *v);
-void *vec_get(Vector *v);
-void *vec_last(Vector *v);
-bool vec_contains(Vector *v, void *element);
-bool vec_union1(Vector *v, void *element);
+// // Vector *new_vec();
+// void vec_push(Vector *v, void *element);
+// void vec_pushi(Vector *v, int val);
+// void *vec_pop(Vector *v);
+// void *vec_get(Vector *v);
+// void *vec_last(Vector *v);
+// bool vec_contains(Vector *v, void *element);
+// bool vec_union1(Vector *v, void *element);
 
-Map *new_map(void);
-void map_put(Map *map, char *key, void *val);
-void map_puti(Map *map, char *key, int val);
-void *map_get(Map *map, char *key);
-int map_geti(Map *map, char *key, int default_);
+// Map *new_map(void);
+// void map_put(Map *map, char *key, void *val);
+// void map_puti(Map *map, char *key, int val);
+// void *map_get(Map *map, char *key);
+// int map_geti(Map *map, char *key, int default_);
 
 //トークンの種類
 typedef enum{
@@ -108,7 +108,9 @@ struct Node{
     Node *condition;    // while，for，ifの条件文に使う
     Node *afterthought; // if-else，forの処理文に使う
     Node *initialize;   // forのみ条件文に使う
-    Vector *block;      // blockに使う
+    Node **block;       // blockに使う
+    // Vector *block;      // blockに使う
+    // Vector *arguments;  // kindがND_FUNCの場合のみ扱う
     char *funcname;     // ND_FUNCのみ使う
     int len;            // ND_FUNCのみ使う
 };

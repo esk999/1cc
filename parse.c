@@ -13,7 +13,7 @@ Node *assign();
 //変数名を名前で探す．見つからなかった場合NULLを返す
 LVar *find_lvar(Token *token){
     for(LVar *var = locals; var; var = var->next){
-        if(var->len == token->len && !memcmp(var->name, token->str, token->len)){
+        if(var->len == token->len && !memcmp(token->str, var->name, var->len)){
             return var;
         }     
     }
@@ -63,6 +63,7 @@ Node *stmt(){
         node->kind = ND_RETURN;        // ノードの種類をreturnにする
         node->lhs = expr();            // ノード左辺をexprにする
         expect(";");
+        return node;
     }
 
     // if(node->condition) node->lhs
@@ -78,6 +79,7 @@ Node *stmt(){
             node->kind = ND_IFELSE;
             node->afterthought = stmt(); // elseの処理文
         }
+        return node;
     }
 
     // while(node->condition) node->lhs
@@ -88,6 +90,7 @@ Node *stmt(){
         node->condition = expr();        // 条件文をexprにする
         expect(")");
         node->lhs = stmt();
+        return node;
     }
 
     // for(node->initialize; node->condition; node->afterthought) node->lhs
@@ -108,16 +111,19 @@ Node *stmt(){
             expect(")");
         }
         node->lhs = stmt();
+        return node;
     }
 
     // block
     else if(consume("{")){                  // "{"を消費したら
         node = calloc(1,sizeof(Node));
         node->kind = ND_BLOCK;              // ノードの種類をblockノード
-        node->block = new_vec();            // ブロックを配列にする
-        while(!consume("}")){               // "}"を消費するまでループ
-            vec_push(node->block, stmt());  // stmtを配列の末尾に追加
+        // 100行まで
+        node->block = calloc(100, sizeof(Node));
+        for(int i=0; !consume("}"); i++){               // "}"を消費するまでループ
+            node->block[i] = stmt();             // stmtを配列の末尾に追加
         }
+        return node;
     }
 
     else{
@@ -218,16 +224,18 @@ Node *mul(){
 // 生成規則: unary = ("+" | "-")? primary
 Node *unary(){
     if(consume("+")){
-        return primary(); // +xをxに変換
+        return unary(); // +xをxに変換
     }
     if(consume("-")){
         // -xを0-xに変換
-        return new_node(ND_SUB, new_node_num(0), primary());
+        return new_node(ND_SUB, new_node_num(0), unary());
     }
     return primary();
 }
 
-//生成規則: primary = num | ident ("(" ")")? | "(" expr ")"
+//生成規則: primary = num 
+//                   | ident ("(" expr* ")")? 
+//                   | "(" expr ")"
 Node *primary(){
     //次のトークンが"("なら"(" exrp ")
     if(consume("(")){
@@ -238,15 +246,20 @@ Node *primary(){
 
     Token *tok = consume_kind(TK_IDENT);
     if(tok){ // 次のトークンがIDENTの場合
-        if(consume("(")){
-            // 関数呼び出し
-            Node *node = calloc(1, sizeof(Node));
-            node->kind = ND_FUNC;
-            node->funcname = tok->str;
-            node->len = tok->len;
-            expect(")");
-            return node;
-        }
+        // if(consume("(")){
+        //     // 関数呼び出し
+        //     Node *node = calloc(1, sizeof(Node));
+        //     node->kind = ND_FUNC;
+        //     node->funcname = tok->str;
+        //     node->len = tok->len;
+        //     // 引数
+        //     node->arguments = new_vec();
+        //     while(!consume(")")){
+        //         vec_push(node->arguments, expr());
+        //         consume(",");
+        //     }
+        //     return node;
+        // }
         Node *node = calloc(1, sizeof(Node));
         node->kind = ND_LVAR;        //ノードを変数として扱う
         
@@ -259,7 +272,7 @@ Node *primary(){
             lvar->next = locals;
             lvar->name = tok->str;
             lvar->len = tok->len;
-            if(locals==NULL){
+            if(locals == NULL){
                 lvar->offset = 8;
             }
             else{
@@ -268,7 +281,6 @@ Node *primary(){
             node->offset = lvar->offset;
             locals = lvar;
         }
-        
         return node;
     }
     //そうでないときは数値
