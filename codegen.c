@@ -18,26 +18,6 @@ LVar *find_lvar_by_node(Node *node){
     return NULL;
 }
 
-
-// add・sub用に用意した値をスタックトップに退避させ，
-// 第2オペランドをtimes倍して，再度raxとrdiを用意する．
-void pointer_add_sub_preproc(int times){
-    // 用意したraxとrdiを退避(元の値を失わないように操作)
-    push("rax");
-    push("rdi");
-    
-    // 第2オペランド(rdi)をtimes倍する  
-    printf("    push %d\n", times);
-    pop("rdi");
-    pop("rax");
-    printf("    imul rax, rdi\n");
-
-    // 元の第1オペランドとtimes倍した第2オペランドをraxとrdiに戻す
-    push("rax");
-    pop("rdi");
-    pop("rax");
-}
-
 void gen_lval(Node *node){
     // 変数 
     if(node->kind == ND_LVAR){
@@ -325,41 +305,11 @@ void gen(Node *node){
     // ノードが+, -, *, /, <, =<, =, !=によってアセンブリのコードを変える
     switch (node->kind){
     case ND_ADD:
-        _lvar = find_lvar_by_node(node->lhs);
-        // ポインタ型の足し算の場合
-        if(_lvar->type->ty == PTR){
-            if(_lvar->type->ptr_to->ty == INT){
-                // intを指すポインタならば+1ごとに+4をする
-                pointer_add_sub_preproc(4);
-            }
-            else if(_lvar->type->ptr_to->ty == PTR){
-                // intを指すポインタのポインタなら+1ごとに+8をする
-                pointer_add_sub_preproc(8);
-            }
-            else{
-                error("未定義のポインタ加算です");
-            }
-        }
         // ポインタ型以外の足し算の場合
         printf("    add rax, rdi\n");   // raxとrdiの和をraxに格納
         break;
     
     case ND_SUB:
-        _lvar = find_lvar_by_node(node->lhs);
-        // ポインタ型の引き算の場合
-        if(_lvar->type->ty == PTR){
-            if(_lvar->type->ptr_to->ty == INT){
-                // intを指すポインタならば-1ごとに-4をする
-                pointer_add_sub_preproc(4);
-            }
-            else if(_lvar->type->ptr_to->ty == PTR){
-                // intを指すポインタのポインタなら-1ごとに-8をする
-                pointer_add_sub_preproc(8);
-            }
-            else{
-                error("未定義のポインタ減算です");
-            }
-        }
         // ポインタ型以外の引き算の場合
         printf("    sub rax, rdi\n");   // raxとrdiの差をraxに格納
         break;
