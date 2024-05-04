@@ -253,7 +253,10 @@ Node *mul(){
     }
 }
 
-// 生成規則: unary = ("+" | "-")? primary
+// 生成規則: unary = "+"? unary
+//                 | "-"? unary
+//                 | "*" unary
+//                 | "&" unary 
 Node *unary(){
     if(consume("+")){
         return unary(); // +xをxに変換
@@ -261,6 +264,12 @@ Node *unary(){
     if(consume("-")){
         // -xを0-xに変換
         return new_node(ND_SUB, new_node_num(0), unary());
+    }
+    if(consume("*")){
+        return new_node(ND_DEREF, unary(), NULL);
+    }
+    if(consume("&")){
+        return new_node(ND_ADDR, unary(), NULL);
     }
     return primary();
 }

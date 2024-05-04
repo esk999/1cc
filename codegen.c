@@ -191,6 +191,17 @@ void gen(Node *node){
             printf("    pop rbp\n");      // スタックから値をポップし，rbpに格納
             printf("    ret\n");          // スタックからリターンアドレスをポップする　呼び出し位置に戻る
             return;
+        
+        case ND_ADDR:
+            gen_lval(node->lhs);
+            return;
+
+        case ND_DEREF:
+            gen(node->lhs); 
+            printf("    pop rax\n");
+            printf("    mov rax, [rax]\n");
+            printf("    push rax\n");
+            return;
         }
 
     gen(node->lhs);     // 左の木を優先　// ノードの左辺の値をスタックにプッシュ
