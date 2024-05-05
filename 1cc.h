@@ -67,6 +67,13 @@ struct Token{
     int len;               //トークンの長さ
 };
 
+typedef struct Type Type;
+
+struct Type{
+    enum {INT, PTR} ty;
+    struct Type *ptr_to;
+};
+
 typedef struct LVar LVar;
 
 struct LVar{
@@ -74,6 +81,7 @@ struct LVar{
     char *name;        //変数の名前
     int len;           //名前の長さ
     int offset;        //RBPからのオフセット
+    Type *type;
 };
 
 //抽象構文木のノードの種類

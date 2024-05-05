@@ -88,7 +88,7 @@ Node *func(){
         // | "while" "(" expr ")" stmt
         // | "for" "(" expr? ";" expr? ";" expr? ")" stmt
         // | "{" *stmt "}"
-        // | int "ident" ";"
+        // | int "*"* "ident" ";"
 Node *stmt(){
     Node *node;
     // return node->lhs
@@ -332,6 +332,15 @@ Node *variable(Token *tok){
 }
 
 Node *define_variable(){
+    Type *type = calloc(1, sizeof(Type));
+    type->ty = INT;
+    type->ptr_to = NULL;
+    while(consume("*")){
+        Type *t = calloc(1, sizeof(Type));
+        t->ty = PTR;
+        t->ptr_to = type;
+        type = t;
+    }
     Token *tok = consume_kind(TK_IDENT);
     Node *node = calloc(1, sizeof(Node));
     node->kind = ND_LVAR;        //ノードを変数として扱う
@@ -352,6 +361,7 @@ Node *define_variable(){
     else{
         lvar->offset = locals[cur_func]->offset + 8;
     }
+    lvar->type = type;
     node->offset = lvar->offset;
     locals[cur_func] = lvar;
     return node;
