@@ -369,6 +369,20 @@ Node *variable(Token *tok){
     }
     node->offset = lvar->offset;   // 以前の変数のoffsetを使う
     node->type = lvar->type;
+
+    // a[2]を*(a + 2)と解釈する
+    // 二重配列は未実装
+    while(consume("[")){ 
+        Node *add = calloc(1, sizeof(Node));
+        add->kind = ND_ADD;
+        add->lhs = node;                // 配列名を表す式
+        add->rhs = expr();              // 配列のインデックス部分を表す式
+        node = calloc(1, sizeof(Node)); // メモリを確保して初期化
+        node->kind = ND_DEREF;
+        node->lhs = add;                // ポインタ + インデックスの値を取得
+        expect("]");
+    }
+
     return node;
 }
 
