@@ -25,6 +25,16 @@ assert(){
         exit 1
     fi
 }
+# string
+assert 97 '
+int main(){
+  char *a;
+  a = "abcd";
+  printf(a);
+  return a[0];
+}
+'
+
 # global
 assert 10 "
 int a;

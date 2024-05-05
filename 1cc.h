@@ -42,6 +42,13 @@ void error(char *fmt, ...);
 // void map_puti(Map *map, char *key, int val);
 // void *map_get(Map *map, char *key);
 // int map_geti(Map *map, char *key, int default_);
+typedef struct StringToken StringToken;
+
+struct StringToken{
+    char *value;
+    int index; 
+    StringToken *next;
+};
 
 //トークンの種類
 typedef enum{
@@ -56,6 +63,7 @@ typedef enum{
     TK_FOR,         //forトークン
     TK_TYPE,        // int
     TK_SIZEOF,      // sizeof
+    TK_STRING,      // string
 } TokenKind;
 
 typedef struct Token Token;
@@ -119,6 +127,7 @@ typedef enum{
     ND_DEREF,   // *
     ND_GVAR_DEF,// グローバル変数の定義
     ND_GVAR,    // グローバル変数の使用
+    ND_STRING,  // string
 } NodeKind;
 
 typedef struct Node Node;
@@ -140,12 +149,17 @@ struct Node{
     Type *type;         // ND_LVARのみ使う
     char *varname;      // ND_GVAR, ND_LVARのみ使う
     int size;           // ND_GVAR, ND_LVARのみ使う
+    StringToken *string; // ND_STRINGのみ使う
 };
+
+
+
 // ローカル変数  
 extern LVar *locals[];
 // グローバル変数
 extern LVar *globals[];
 extern int cur_func;
+extern StringToken *strings;
 // 入力プログラム
 char *user_input;
 

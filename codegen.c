@@ -33,6 +33,10 @@ void gen(Node *node){
     int id = label_index;
     int argcnt = 0;
     switch(node->kind){
+        case ND_STRING:
+            printf("    push offset .LC_%d\n", node->string->index);
+            return;
+
         case ND_NUM:
             printf("    push %d\n", node->val); // ノードの値をスタックにプッシュ
             return;
@@ -179,6 +183,7 @@ void gen(Node *node){
             for(int i = argcnt - 1; i >= 0; i--){
                 printf("    pop %s\n", argreg8[i]);
             }
+            printf("    mov AL, 0\n");      // 関数を呼ぶ前に常にALに0をセット
             // RSPは16の倍数
             printf("    mov rax, rsp\n");
             printf("    and rax, 15\n");          // 下位4ビットだけ残す(16のあまりの部分)

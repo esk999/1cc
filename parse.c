@@ -2,6 +2,7 @@
 LVar *locals[100];
 LVar *globals[100];
 int cur_func=0;
+StringToken *strings;
 Node *expr();
 Node *func();
 Node *stmt();
@@ -80,6 +81,12 @@ Type *get_type(Node *node){
     return t;
 }
 
+Node *new_node_one(NodeKind kind) {
+    Node *node = calloc(1, sizeof(Node));
+    node->kind = kind;
+    return node;
+}
+
 //左辺と右辺を受け取る2項演算子
 Node *new_node(NodeKind kind, Node *lhs, Node *rhs){
     Node *node = calloc(1, sizeof(Node));
@@ -91,9 +98,15 @@ Node *new_node(NodeKind kind, Node *lhs, Node *rhs){
 
 //数値を受け取る
 Node *new_node_num(int val){
-    Node *node = calloc(1, sizeof(Node));
-    node->kind = ND_NUM; 
+    Node *node = new_node_one(ND_NUM);
     node->val = val;
+    return node;
+}
+
+// stringノードを生成
+Node *new_node_string(StringToken *s){
+    Node *node = new_node_one(ND_STRING);
+    node->string = s;
     return node;
 }
 
@@ -391,6 +404,23 @@ Node *primary(){
         // 関数呼び出しでない場合変数
         return variable(tok);
     }
+
+    // string
+    if(tok = consume_kind(TK_STRING)){
+        StringToken *s = calloc(1, sizeof(StringToken));
+        s->value = calloc(100, sizeof(char));
+        memcpy(s->value, tok->str, tok->len);
+        if(strings){
+            s->index = strings->index + 1;
+        }
+        else{
+             s->index = 0;
+        }
+        s->next = strings;
+        strings = s;
+        return new_node_string(s);
+    }
+
     //そうでないときは数値
     return new_node_num(expect_number());
 }

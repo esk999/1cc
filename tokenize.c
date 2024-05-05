@@ -140,6 +140,20 @@ void tokenize(char *p){
             continue;
         }
 
+        if('"' == *p){
+            p++; // "の次の文字から考える
+            char *c = p;
+            while('"' != *c){
+                c++;
+            }
+            int len = c - p;
+            cur = new_token(TK_STRING, cur, p);
+            cur->len = len;
+            p = c;
+            p++; // "の次の文字に進む
+            continue;
+        }
+
         //予約語
         bool found = false;
         for (int i = 0; reservedWords[i].kind != TK_EOF; i++) {
