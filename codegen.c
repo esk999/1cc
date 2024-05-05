@@ -182,7 +182,7 @@ void gen(Node *node){
             }
             // 引数以外の変数分のスタック領域を確保する
             if(locals[cur_func]){
-                int offset = locals[cur_func][0].offset;
+                int offset = locals[cur_func]->offset;
                 offset -= argcnt * 8;
                 printf("    sub rsp, %d\n", offset); 
             }

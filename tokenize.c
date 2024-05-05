@@ -124,7 +124,7 @@ void tokenize(char *p){
         }
         
         //1文字の比較演算子と括弧と計算記号
-        if(strchr("+-*/()<>=;{},&", *p)){
+        if(strchr("+-*/()<>=;{},&[]", *p)){
             cur = new_token(TK_RESERVED, cur, p++); //1字進める
             cur->len = 1; // curの長さを1
             continue;

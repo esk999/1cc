@@ -383,6 +383,22 @@ Node *define_variable(){
         type = t;
     }
     Token *tok = consume_kind(TK_IDENT);
+    int size = type->ty == PTR ? 8 : 4;
+    // 配列か確認する
+    while(consume("[")){
+        Type *t= calloc(1, sizeof(Type));
+        t->ty = ARRAY;
+        t->ptr_to = type;
+        t->array_size = expect_number();
+        type = t;
+        size *= t->array_size;
+        expect("]");
+    }
+    // int型の時にサイズが4となるが，offsetは8の倍数じゃないといけない（要確認）
+    while(size % 8 != 0){
+        size += 4;
+    }
+
     Node *node = calloc(1, sizeof(Node));
     node->kind = ND_LVAR;        //ノードを変数として扱う
     
@@ -397,10 +413,10 @@ Node *define_variable(){
     lvar->name = tok->str;
     lvar->len = tok->len;
     if(locals[cur_func] == NULL){
-        lvar->offset = 8;
+        lvar->offset = size;
     }
     else{
-        lvar->offset = locals[cur_func]->offset + 8;
+        lvar->offset = locals[cur_func]->offset + size;
     }
     lvar->type = type;
     node->offset = lvar->offset;
