@@ -22,7 +22,7 @@ char *read_file(char *path){
     fread(buf, size, 1, fp);
 
     // ファイルが必ず\n\0で終わっているようにする
-    if(size = 0 || buf[size - 1] != '\n'){
+    if(size == 0 || buf[size - 1] != '\n'){
         buf[size++] = '\n';
     }
     buf[size] = '\0';
