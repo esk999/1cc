@@ -22,6 +22,29 @@ LVar *find_lvar(Token *token){
     return NULL; 
 }
 
+// ノードの型を取得する
+Type *get_type(Node *node){
+    if(node == NULL){
+        return NULL;    //sizeof(1)のとき
+    }
+
+    if(node->type){
+        return node->type;
+    }
+    Type *t = get_type(node->lhs);
+    if(!t){
+        t = get_type(node->rhs);
+    }
+    if(t && node->kind == ND_DEREF){
+        t = t->ptr_to;
+        if(t == NULL){
+            error("無効な参照です");
+        }
+        return t;
+    }
+    return t;
+}
+
 //左辺と右辺を受け取る2項演算子
 Node *new_node(NodeKind kind, Node *lhs, Node *rhs){
     Node *node = calloc(1, sizeof(Node));
@@ -289,7 +312,8 @@ Node *unary(){
     }
     if(consume_kind(TK_SIZEOF)){
         Node *n = unary();
-        int size = n->type && n->type->ty == PTR ? 8 : 4;   // ポインタなら8，それ以外なら4 
+        Type *t = get_type(n);
+        int size = t && t->ty == PTR ? 8 : 4;   // ポインタなら8，それ以外なら4 
         return new_node_num(size);
     }
     return primary();

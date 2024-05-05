@@ -242,11 +242,12 @@ int main(){
   return sizeof(1);
 }
 "
-# TODO x + 3はまだ解釈できない
-# assert 8 "
-# int main(){
-#   int *x;
-#   return sizeof(x + 3);
-# }
+
+assert 8 "
+int main(){
+  int *x;
+  return sizeof(x + 3);
+}
+"
 
 echo OK

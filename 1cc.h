@@ -145,6 +145,7 @@ Node *code[100];
 void program();
 Node *variable(Token *tok);
 Node *define_variable();
+Type *get_type(Node *node);
 
 //トークナイザ tokenize.c
 bool consume(char *op);
