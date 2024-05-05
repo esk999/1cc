@@ -272,6 +272,7 @@ Node *mul(){
 //                 | "-"? unary
 //                 | "*" unary
 //                 | "&" unary 
+//                 | "sizeof" unary
 Node *unary(){
     if(consume("+")){
         return unary(); // +xをxに変換
@@ -285,6 +286,11 @@ Node *unary(){
     }
     if(consume("&")){
         return new_node(ND_ADDR, unary(), NULL);
+    }
+    if(consume_kind(TK_SIZEOF)){
+        Node *n = unary();
+        int size = n->type && n->type->ty == PTR ? 8 : 4;   // ポインタなら8，それ以外なら4 
+        return new_node_num(size);
     }
     return primary();
 }

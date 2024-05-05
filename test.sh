@@ -223,5 +223,30 @@ int main(){
   return *q;
 }
 "
+# sizeof
+assert 4 "
+int main(){
+  int x;
+  return sizeof(x);
+}
+"
+
+assert 8 "
+int main(){
+  int *x;
+  return sizeof(x);
+}
+"
+assert 4 "
+int main(){
+  return sizeof(1);
+}
+"
+# TODO x + 3はまだ解釈できない
+# assert 8 "
+# int main(){
+#   int *x;
+#   return sizeof(x + 3);
+# }
 
 echo OK
