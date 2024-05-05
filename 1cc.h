@@ -76,6 +76,13 @@ struct Type{
     size_t array_size;
 };
 
+typedef struct Define Define;
+
+struct Define{
+    Type *type;
+    Token *ident;
+};
+
 typedef struct LVar LVar;
 
 struct LVar{
@@ -84,6 +91,7 @@ struct LVar{
     int len;           //名前の長さ
     int offset;        //RBPからのオフセット
     Type *type;
+    enum {LOCAL, GLOBAL} kind;
 };
 
 //抽象構文木のノードの種類
@@ -109,6 +117,8 @@ typedef enum{
     ND_FUNC_DEF, // 関数定義
     ND_ADDR,    // &
     ND_DEREF,   // *
+    ND_GVAR_DEF,// グローバル変数の定義
+    ND_GVAR,    // グローバル変数の使用
 } NodeKind;
 
 typedef struct Node Node;
@@ -128,9 +138,13 @@ struct Node{
     char *funcname;     // ND_FUNCのみ使う
     Node **args;        // ND_FUNC_DEFのみ使う
     Type *type;         // ND_LVARのみ使う
+    char *varname;      // ND_GVAR, ND_LVARのみ使う
+    int size;           // ND_GVAR, ND_LVARのみ使う
 };
 // ローカル変数  
 extern LVar *locals[];
+// グローバル変数
+extern LVar *globals[];
 extern int cur_func;
 // 入力プログラム
 char *user_input;
@@ -144,9 +158,11 @@ int label_index;
 //パーサ parse.c
 Node *code[100];
 void program();
+LVar *find_variable(Token *token);
 Node *variable(Token *tok);
-Node *define_variable();
+Node *define_variable(Define *def, LVar **varlist);
 Type *get_type(Node *node);
+Define *read_define();
 
 //トークナイザ tokenize.c
 bool consume(char *op);

@@ -1,17 +1,21 @@
 #include "1cc.h"
 
-void gen_lval(Node *node){
+void gen_val(Node *node){
     if(node->kind == ND_DEREF){
         gen(node->lhs);
         return;
     }
-    if(node->kind != ND_LVAR){
-        error("代入の左辺値が変数ではありません");
+    if(node->kind == ND_LVAR){
+        printf("    mov rax, rbp\n");               // ベースポインタをraxに移動
+        printf("    sub rax, %d\n", node->offset);  // raxが変数のメモリアドレスを示す
+        printf("    push rax\n");                   // ローカル変数のアドレスをスタックにプッシュ
     }
-    printf("    mov rax, rbp\n");               // ベースポインタをraxに移動
-    printf("    sub rax, %d\n", node->offset);  // raxが変数のメモリアドレスを示す
-    printf("    push rax\n");                   // ローカル変数のアドレスをスタックにプッシュ
-    return;
+    else if(node->kind == ND_GVAR){
+        printf("    push offset %s\n", node->varname);
+    }
+    else{
+        error("変数ではありません");
+    }
 }
 
 //label_indexを初期化
@@ -31,7 +35,8 @@ void gen(Node *node){
             return;
                 
         case ND_LVAR:
-            gen_lval(node);                     // ローカル変数のアドレスをスタックにプッシュ
+        case ND_GVAR:
+            gen_val(node);                     // ローカル変数のアドレスをスタックにプッシュ
             if(node->type && node->type->ty == ARRAY){
                 return;                         // 配列の場合はアドレスをそのままにしたい
             }
@@ -39,9 +44,9 @@ void gen(Node *node){
             printf("    mov rax, [rax]\n");     // raxのアドレスにある値をraxに格納
             printf("    push rax\n");           // スタックにプッシュ
             return;
-            
+
         case ND_ASSIGN:
-            gen_lval(node->lhs);                // 左辺のローカル変数のアドレスをスタックにプッシュ
+            gen_val(node->lhs);                // 左辺のローカル変数のアドレスをスタックにプッシュ
             gen(node->rhs);                     // 右辺の値をスタックにプッシュ
             printf("    pop rdi\n");            // 右辺の値をrdiに格納
             printf("    pop rax\n");            // 左辺のアドレスをraxに格納
@@ -199,7 +204,7 @@ void gen(Node *node){
             return;
         
         case ND_ADDR:
-            gen_lval(node->lhs);
+            gen_val(node->lhs);
             return;
 
         case ND_DEREF:
@@ -207,6 +212,11 @@ void gen(Node *node){
             printf("    pop rax\n");
             printf("    mov rax, [rax]\n");
             printf("    push rax\n");
+            return;
+
+        case ND_GVAR_DEF:
+            printf("%s:\n", node->varname);
+            printf("    .zero %d\n", node->size);
             return;
         }
 

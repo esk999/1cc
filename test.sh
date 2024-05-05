@@ -14,7 +14,7 @@ assert(){
     cd func
     cc -c func.c
     cd ..
-    cc -o tmp tmp.s func/func.o
+    cc -static -o tmp tmp.s func/func.o
     ./tmp
     actual="$?"
 
@@ -25,7 +25,15 @@ assert(){
         exit 1
     fi
 }
-
+# global
+assert 10 "
+int a;
+int b[10];
+int main(){
+  a = 10;
+  return a;
+}
+"
 assert 2 "int main() {return 2;}"
 assert 2 "int main() return 2;"
 assert 3 "

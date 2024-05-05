@@ -1,5 +1,6 @@
 #include "1cc.h"
 LVar *locals[100];
+LVar *globals[100];
 int cur_func=0;
 Node *expr();
 Node *func();
@@ -13,14 +14,46 @@ Node *primary();
 Node *assign();
 
 //変数名を名前で探す．見つからなかった場合NULLを返す
-LVar *find_lvar(Token *token){
+LVar *find_variable(Token *token){
     for(LVar *var = locals[cur_func]; var; var = var->next){
         if(var->len == token->len && !memcmp(token->str, var->name, var->len)){
+            var->kind = LOCAL;
+            return var;
+        }     
+    }
+    for(LVar *var = globals[0]; var; var = var->next){
+        if(var->len == token->len && !memcmp(token->str, var->name, var->len)){
+            var->kind = GLOBAL;
             return var;
         }     
     }
     return NULL; 
 }
+
+// 型名の前半を読む関数
+Define *read_define(){
+    if(!consume_kind(TK_TYPE)){
+        return NULL;
+    }
+    Type *type = calloc(1, sizeof(Type));
+    type->ty = INT;
+    type->ptr_to = NULL;
+    while(consume("*")){
+        Type *t = calloc(1, sizeof(Type));
+        t->ty = PTR;
+        t->ptr_to = type;
+        type = t;
+    }
+    Token *tok = consume_kind(TK_IDENT);
+    if(tok == NULL){
+        error("関数または変数ではありません");
+    }
+    Define *def = calloc(1, sizeof(Define));
+    def->type = type;
+    def->ident = tok;
+    return def;
+}
+
 
 // ノードの型を取得する
 Type *get_type(Node *node){
@@ -76,33 +109,35 @@ void program(){
 
 // func = "int" ident "(" ("int" ident ("," "int" ident)* ) ? ")" stmt 
 Node *func(){
-    cur_func++;
     Node *node;
-    if(!consume_kind(TK_TYPE)){
-        error("関数の型が定義されていません");
-    }
-    Token *tok = consume_kind(TK_IDENT);
-    if(tok == NULL){
-        error("関数ではありません");
-    }
-    node = calloc(1, sizeof(Node));
-    node->kind = ND_FUNC_DEF;
-    node->funcname = calloc(100, sizeof(char));
-    node->args = calloc(10, sizeof(Node*));
-    memcpy(node->funcname, tok->str, tok->len);
-    expect("(");
-    for(int i = 0; !consume(")"); i++){
-        if(!consume_kind(TK_TYPE)){
-            error("引数の型が宣言されていません");  
+    Define *def = read_define();
+    if(consume("(")){
+        cur_func++;
+        node = calloc(1, sizeof(Node));
+        node->kind = ND_FUNC_DEF;
+        node->funcname = calloc(100, sizeof(char));
+        node->args = calloc(10, sizeof(Node*));
+        memcpy(node->funcname, def->ident->str, def->ident->len);
+        for(int i = 0; !consume(")"); i++){
+            // if(!consume_kind(TK_TYPE)){
+            //     error("引数の型が宣言されていません");  
+            // }
+            node->args[i] = define_variable(read_define(), locals);
+            if(consume(")")){
+                break;
+            }
+            expect(",");
         }
-        node->args[i] = define_variable();
-        if(consume(")")){
-            break;
-        }
-        expect(",");
+        node->lhs = stmt();
+        return node;
     }
-    node->lhs = stmt();
-    return node;
+    else{
+        // 変数定義
+        node = define_variable(def, globals); //グローバル変数
+        node->kind = ND_GVAR_DEF;
+        expect(";");
+        return node;
+    }
 }
 
 // 生成規則: stmt = expr ";" 
@@ -183,8 +218,9 @@ Node *stmt(){
         return node;
     }
     // int
-    if(consume_kind(TK_TYPE)){
-        node = define_variable();
+    Define *def = read_define();
+    if(def){
+        node = define_variable(def, locals);
         expect(";");
         return node;
     }
@@ -359,14 +395,14 @@ Node *primary(){
 
 // 関数の引数の段階で変数を登録する
 Node *variable(Token *tok){
-    Node *node = calloc(1, sizeof(Node));
-    node->kind = ND_LVAR;        //ノードを変数として扱う
-    LVar *lvar = find_lvar(tok); // 同じ名前の変数がないか確認
+    Node *node = calloc(1, sizeof(Node));    
+    LVar *lvar = find_variable(tok); // 同じ名前の変数がないか確認
+    node->varname = calloc(100, sizeof(char));
+    memcpy(node->varname, tok->str, tok->len);
     if(lvar == NULL){
-        char name[100] = {0};
-        memcpy(name, tok->str, tok->len);
-        error("%sは未定義の変数です", name);
+        error("%sは未定義の変数です", node->varname);
     }
+    node->kind = lvar->kind == LOCAL ? ND_LVAR : ND_GVAR;
     node->offset = lvar->offset;   // 以前の変数のoffsetを使う
     node->type = lvar->type;
 
@@ -386,17 +422,11 @@ Node *variable(Token *tok){
     return node;
 }
 
-Node *define_variable(){
-    Type *type = calloc(1, sizeof(Type));
-    type->ty = INT;
-    type->ptr_to = NULL;
-    while(consume("*")){
-        Type *t = calloc(1, sizeof(Type));
-        t->ty = PTR;
-        t->ptr_to = type;
-        type = t;
+Node *define_variable(Define *def, LVar **varlist){
+    if(def == NULL){
+        error("無効な定義です");
     }
-    Token *tok = consume_kind(TK_IDENT);
+    Type *type = def->type;
     int size = type->ty == PTR ? 8 : 4;
     // 配列か確認する
     while(consume("[")){
@@ -414,27 +444,28 @@ Node *define_variable(){
     }
 
     Node *node = calloc(1, sizeof(Node));
-    node->kind = ND_LVAR;        //ノードを変数として扱う
-    
-    LVar *lvar = find_lvar(tok); // 同じ名前の変数がないか確認
+    node->varname = calloc(100, sizeof(char));
+    memcpy(node->varname, def->ident->str, def->ident->len);
+    node->size = size;
+    LVar *lvar = find_variable(def->ident); // 同じ名前の変数がないか確認
     if(lvar != NULL){
-        char name[100] = {0};
-        memcpy(name, tok->str, tok->len);
-        error("%sは未定義の変数です", name);
+        error("%sは未定義の変数です", node->varname);
     }
+    // 要修正
+    node->kind = locals == varlist ? ND_LVAR : ND_GVAR;        //変数の子類によってノードを切り替える
     lvar = calloc(1, sizeof(LVar));
-    lvar->next = locals[cur_func];
-    lvar->name = tok->str;
-    lvar->len = tok->len;
-    if(locals[cur_func] == NULL){
+    lvar->next = varlist[cur_func];
+    lvar->name = def->ident->str;
+    lvar->len = def->ident->len;
+    if(varlist[cur_func] == NULL){
         lvar->offset = size;
     }
     else{
-        lvar->offset = locals[cur_func]->offset + size;
+        lvar->offset = varlist[cur_func]->offset + size;
     }
     lvar->type = type;
     node->offset = lvar->offset;
     node->type = lvar->type;
-    locals[cur_func] = lvar;
+    varlist[cur_func] = lvar;
     return node;
 }

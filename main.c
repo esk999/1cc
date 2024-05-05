@@ -13,12 +13,22 @@ int main(int argc, char **argv){
 
     //アセンブリの前半部分を出力
     printf(".intel_syntax noprefix\n");
-    printf(".globl main\n");
+    printf(".bss\n");   // データセグメント
+    // グローバル変数を先に生成
+    for(int i=0; code[i]; i++){  
+        if(code[i]->kind == ND_GVAR_DEF){
+            gen(code[i]);  
+        }   
+    }
+    printf(".text\n");  // この直後から機械語にされる実行文を表す
+    printf(".global main\n");
+    cur_func = 0;
     //先頭の式から順にコードを生成
-    cur_func=0;
     for(int i=0; code[i]; i++){
-        gen(code[i]);
-        cur_func++;
+        if(code[i]->kind == ND_FUNC_DEF){
+            cur_func++;
+            gen(code[i]);  
+        }
     }
     return 0;
 }
