@@ -183,7 +183,6 @@ void gen(Node *node){
             for(int i = argcnt - 1; i >= 0; i--){
                 printf("    pop %s\n", argreg8[i]);
             }
-            printf("    mov AL, 0\n");      // 関数を呼ぶ前に常にALに0をセット
             // RSPは16の倍数
             printf("    mov rax, rsp\n");
             printf("    and rax, 15\n");          // 下位4ビットだけ残す(16のあまりの部分)
@@ -193,7 +192,7 @@ void gen(Node *node){
             printf("    jmp .L.end.%03d\n", id);
             printf(".L.call.%03d:\n", id);
             printf("    sub rsp, 8\n");
-            printf("    mov rax, 0\n");
+            printf("    mov rax, 0\n");           // 関数を呼ぶ前に常にALに0をセット
             printf("    call %s\n", node->funcname);
             printf("    add rsp, 8\n");
             printf(".L.end.%03d:\n", id);
@@ -203,8 +202,8 @@ void gen(Node *node){
             return;
 
         case ND_FUNC_DEF:
+            printf(".global %s\n", node->funcname);
             printf("%s:\n", node->funcname);
-
             // プロローグ
             printf("    push rbp\n");     // 現在のベースポインタの値をスタックにプッシュ
             printf("    mov rbp, rsp\n"); // スタックポインタをrbpにコピー
