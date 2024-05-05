@@ -171,7 +171,7 @@ assert 3 "
 int main(){
   int x;
   x = 3;
-  int y;
+  int *y;
   y = &x;
   return *y;
 }"
@@ -182,7 +182,7 @@ int main(){
   x = 3;
   int y;
   y = 5;
-  int z;
+  int *z;
   z = &y + 8;
   return *z;
 }"
@@ -258,6 +258,13 @@ int main(){
 }
 "
 
+assert 1 "
+int main(){
+  char x;
+  return sizeof(x);
+}
+"
+
 # array
 assert 0 "
 int main(){
@@ -295,4 +302,15 @@ int main(){
 }
 "
 
+#char
+assert 3 "
+int main(){
+  char x[3];
+  x[0] = -1;
+  x[1] = 2;
+  int y;
+  y = 4;
+  return x[0] + y;
+}
+"
 echo OK

@@ -22,7 +22,10 @@ void gen_val(Node *node){
 int label_index = 0;
 
 // レジスタ名定義
-char *argRegs[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
+static char *argreg1[] = {"dil", "sil", "dl", "cl", "r8b", "r9b"};
+static char *argreg2[] = {"di", "si", "dx", "cx", "r8w", "r9w"};
+static char *argreg4[] = {"edi", "esi", "edx", "ecx", "r8d", "r9d"};
+static char *argreg8[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 
 void gen(Node *node){
     if (!node) return;
@@ -41,7 +44,15 @@ void gen(Node *node){
                 return;                         // 配列の場合はアドレスをそのままにしたい
             }
             printf("    pop rax\n");            // ローカル変数のアドレスをraxレジスタに格納
-            printf("    mov rax, [rax]\n");     // raxのアドレスにある値をraxに格納
+            if(node->type && node->type->ty == CHAR){
+                printf("    movsx rax, BYTE PTR [rax]\n");
+            }
+            else if(node->type && node->type->ty == INT){
+                printf("    movsxd rax, DWORD PTR [rax]\n");
+            }
+            else{
+                printf("    mov rax, [rax]\n");     // raxのアドレスにある値をraxに格納
+            }
             printf("    push rax\n");           // スタックにプッシュ
             return;
 
@@ -50,7 +61,15 @@ void gen(Node *node){
             gen(node->rhs);                     // 右辺の値をスタックにプッシュ
             printf("    pop rdi\n");            // 右辺の値をrdiに格納
             printf("    pop rax\n");            // 左辺のアドレスをraxに格納
-            printf("    mov [rax], rdi\n");     // 左辺のアドレスに右辺の値を格納
+            if(node->type && node->type->ty == CHAR){
+                printf("    mov [rax], dil\n");
+            }
+            else if(node->type && node->type->ty == INT){
+                printf("    mov [rax], edi\n");
+            }
+            else{
+                printf("    mov [rax], rdi\n");     // 左辺のアドレスに右辺の値を格納
+            }
             printf("    push rdi\n");           // 代入された値をスタックにプッシュ
             return;
                 
@@ -158,7 +177,7 @@ void gen(Node *node){
                 argcnt++;
             }
             for(int i = argcnt - 1; i >= 0; i--){
-                printf("    pop %s\n", argRegs[i]);
+                printf("    pop %s\n", argreg8[i]);
             }
             // RSPは16の倍数
             printf("    mov rax, rsp\n");
@@ -184,15 +203,26 @@ void gen(Node *node){
             // プロローグ
             printf("    push rbp\n");     // 現在のベースポインタの値をスタックにプッシュ
             printf("    mov rbp, rsp\n"); // スタックポインタをrbpにコピー
-            // 引数の値をスタックに積む
-            for(int i = 0; node->args[i]; i++){
-                printf("    push %s\n", argRegs[i]);
-            }
             // 引数以外の変数分のスタック領域を確保する
             if(locals[cur_func]){
                 int offset = locals[cur_func]->offset;
-                offset -= argcnt * 8;
                 printf("    sub rsp, %d\n", offset); 
+            }
+            // 引数の値
+            for(int i = 0; node->args[i]; i++){
+                if(node->args[i]->size == 1){
+                    printf("    mov [rbp-%d], %s\n", node->args[i]->offset, argreg1[i]);
+                }
+                else if(node->args[i]->size == 2){
+                    printf("    mov [rbp-%d], %s\n", node->args[i]->offset, argreg2[i]); // 今は関係ない
+                }
+                else if(node->args[i]->size == 4){
+                    printf("    mov [rbp-%d], %s\n", node->args[i]->offset, argreg4[i]);                   
+                }
+                else{
+                    printf("    mov [rbp-%d], %s\n", node->args[i]->offset, argreg8[i]);
+                }
+                
             }
             
             gen(node->lhs);
