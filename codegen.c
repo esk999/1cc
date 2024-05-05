@@ -32,6 +32,9 @@ void gen(Node *node){
                 
         case ND_LVAR:
             gen_lval(node);                     // ローカル変数のアドレスをスタックにプッシュ
+            if(node->type && node->type->ty == ARRAY){
+                return;                         // 配列の場合はアドレスをそのままにしたい
+            }
             printf("    pop rax\n");            // ローカル変数のアドレスをraxレジスタに格納
             printf("    mov rax, [rax]\n");     // raxのアドレスにある値をraxに格納
             printf("    push rax\n");           // スタックにプッシュ
