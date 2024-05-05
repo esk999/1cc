@@ -5,7 +5,8 @@ int main(int argc, char **argv){
         return 1;
     }
     //現在注目しているトークン
-    user_input = argv[1];
+    filename = argv[1];
+    user_input = read_file(filename);
     //トークナイズする
     tokenize(user_input);
     //パースする
@@ -26,7 +27,6 @@ int main(int argc, char **argv){
         printf("    .string \"%s\"\n", s->value);
     }
     printf(".text\n");  // この直後から機械語にされる実行文を表す
-    printf(".global main\n");
     cur_func = 0;
     //先頭の式から順にコードを生成
     for(int i=0; code[i]; i++){

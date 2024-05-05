@@ -6,6 +6,7 @@
 #include <string.h>
 #include <assert.h>
 #include <stdint.h>
+#include <errno.h>
 
 // // コンテナ
 // // 動的なサイズ変更が可能な配列を実装
@@ -26,6 +27,7 @@
 // };
 
 // container.c
+char *read_file(char *path);
 void error_at(char *loc, char *fmt, ...);
 void error(char *fmt, ...);
 // // Vector *new_vec();
@@ -162,6 +164,7 @@ extern int cur_func;
 extern StringToken *strings;
 // 入力プログラム
 char *user_input;
+extern char *filename;
 
 // 現在注目しているトークン
 Token *token;
