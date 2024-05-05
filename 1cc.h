@@ -54,6 +54,7 @@ typedef enum{
     TK_ELSE,        //elseトークン
     TK_WHILE,       //whileトークン
     TK_FOR,         //forトークン
+    TK_TYPE,        // int
 } TokenKind;
 
 typedef struct Token Token;
@@ -133,6 +134,7 @@ int label_index;
 Node *code[100];
 void program();
 Node *variable(Token *tok);
+Node *define_variable();
 
 //トークナイザ tokenize.c
 bool consume(char *op);

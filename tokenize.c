@@ -83,6 +83,22 @@ bool startswitch(char *p, char *q){
     return memcmp(p, q, strlen(q)) == 0;
 }
 
+typedef struct ReservedWord ReservedWord;
+struct ReservedWord {
+    char *word;
+    TokenKind kind;
+};
+
+ReservedWord reservedWords[] = { 
+    {"return", TK_RETURN},
+    {"if", TK_IF},
+    {"else", TK_ELSE},
+    {"while", TK_WHILE},
+    {"for", TK_FOR},
+    {"int", TK_TYPE},
+    {"", TK_EOF},
+};
+
 // 入力文字列pをトークナイズしてそれを返す
 // 連結リストを作成する
 void tokenize(char *p){
@@ -123,40 +139,20 @@ void tokenize(char *p){
         }
 
         //予約語
-        //変数より先に判定するようにした
-        //return    
-        if(strncmp(p, "return", 6) == 0 && !is_alnum(p[6])){
-            cur = new_token(TK_RETURN, cur, p);
-            cur->len = 6; //returnの文字数にする
-            p = p + 6;    //returnの文字数分進める
-            continue;
+        bool found = false;
+        for (int i = 0; reservedWords[i].kind != TK_EOF; i++) {
+            char *w = reservedWords[i].word;
+            int len = strlen(w);
+            TokenKind kind = reservedWords[i].kind;
+            if (startswitch(p, w) && !is_alnum(p[len])) {
+                cur = new_token(kind, cur, p);
+                cur->len = len;
+                p += len;
+                found = true;
+                break;
+            }
         }
-
-        if(strncmp(p, "if", 2) == 0 && !is_alnum(p[2])){
-            cur = new_token(TK_IF, cur, p);
-            cur->len = 2; //ifの文字数にする
-            p = p + 2;    //ifの文字数分進める
-            continue;
-        }
-
-        if(strncmp(p, "else", 4) == 0 && !is_alnum(p[4])){
-            cur = new_token(TK_ELSE, cur, p);
-            cur->len = 4; //elseの文字数にする
-            p = p + 4;    //elseの文字数分進める
-            continue;
-        }
-
-        if(strncmp(p, "while", 5) == 0 && !is_alnum(p[5])){
-            cur = new_token(TK_WHILE, cur, p);
-            cur->len = 5; //whileの文字数にする
-            p = p + 5;    //whileの文字数分進める
-            continue;
-        }
-
-        if(strncmp(p, "for", 3) == 0 && !is_alnum(p[3])){
-            cur = new_token(TK_FOR, cur, p);
-            cur->len = 3; //forの文字数にする
-            p = p + 3;    //forの文字数分進める
+        if (found) {
             continue;
         }
 
