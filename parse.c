@@ -229,10 +229,20 @@ Node *add(){
     Node *node = mul();
     for(;;){
         if(consume("+")){
-            node = new_node(ND_ADD, node, mul());
+            Node *r = mul();
+            if(node->type && node->type->ty == PTR){
+                int n = node->type->ptr_to->ty == INT ? 4 : 8; //int型なら4，それ以外なら8となる
+                r = new_node(ND_MUL, r, new_node_num(n));
+            }
+            node = new_node(ND_ADD, node, r);
         }
         else if(consume("-")){
-            node = new_node(ND_SUB, node, mul());
+            Node *r = mul();
+            if(node->type && node->type->ty == PTR){
+                int n = node->type->ptr_to->ty == INT ? 4 : 8; //int型なら4，それ以外なら8となる
+                r = new_node(ND_MUL, r, new_node_num(n));
+            }
+            node = new_node(ND_SUB, node, r);
         }
         else{
             return node;
@@ -328,6 +338,7 @@ Node *variable(Token *tok){
         error("%sは未定義の変数です", name);
     }
     node->offset = lvar->offset;   // 以前の変数のoffsetを使う
+    node->type = lvar->type;
     return node;
 }
 
@@ -363,6 +374,7 @@ Node *define_variable(){
     }
     lvar->type = type;
     node->offset = lvar->offset;
+    node->type = lvar->type;
     locals[cur_func] = lvar;
     return node;
 }

@@ -190,7 +190,6 @@ void gen(Node *node){
             gen(node->lhs);
 
             // エピローグ
-            // printf("    mov rax, 0");  // 必要かわからん?
             printf("    mov rsp, rbp\n"); // ベースポインタの値をrspに移動
             printf("    pop rbp\n");      // スタックから値をポップし，rbpに格納
             printf("    ret\n");          // スタックからリターンアドレスをポップする　呼び出し位置に戻る

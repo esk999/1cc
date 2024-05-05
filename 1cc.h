@@ -125,6 +125,7 @@ struct Node{
     // Vector *arguments;  // kindがND_FUNCの場合のみ扱う
     char *funcname;     // ND_FUNCのみ使う
     Node **args;        // ND_FUNC_DEFのみ使う
+    Type *type;         // ND_LVARのみ使う
 };
 // ローカル変数  
 extern LVar *locals[];
