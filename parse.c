@@ -444,7 +444,11 @@ Node *variable(Token *tok){
         Node *add = calloc(1, sizeof(Node));
         add->kind = ND_ADD;
         add->lhs = node;                // 配列名を表す式
-        add->rhs = expr();              // 配列のインデックス部分を表す式
+        if (node->type && node->type->ty != INT) {
+            int n = node->type->ptr_to->ty == INT ? 4
+                : node->type->ptr_to->ty == CHAR ? 1 : 8;
+            add->rhs = new_node(ND_MUL, expr(), new_node_num(n));
+        }
         node = calloc(1, sizeof(Node)); // メモリを確保して初期化
         node->kind = ND_DEREF;
         node->lhs = add;                // ポインタ + インデックスの値を取得
@@ -459,7 +463,7 @@ Node *define_variable(Define *def, LVar **varlist){
         error("無効な定義です");
     }
     Type *type = def->type;
-    int size = type->ty == PTR ? 8 : type->ty == CHAR ? 1 : 8; // TODO 8にしたらテスト通った　本来なら4
+    int size = type->ty == PTR ? 8 : type->ty == CHAR ? 1 : 4;
     // 配列か確認する
     while(consume("[")){
         Type *t= calloc(1, sizeof(Type));

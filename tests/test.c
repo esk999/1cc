@@ -1,3 +1,6 @@
+int g_a;
+int g_b[10];
+
 int assert(int expected, int actual) {
   if (expected == actual) {
     printf(".");
@@ -112,35 +115,35 @@ int test_for() {
   assert(10, b);
 }
 
-// int inner_multi_c() {
-//    int b;
-//   b = 0;
-//   for(;;b = b + 1) {if (b == 5) return b;}
-// }
-// int test_multi_control_syntax() {
-//   int a;
-//   a = 3;
-//   if (a == 1) fail();
-//   if (a == 2) fail();
-//   if (a == 3) ok();
-//   assert(3, a);
+int inner_multi_c() {
+   int b;
+  b = 0;
+  for(;;b = b + 1) {if (b == 5) return b;}
+}
+int test_multi_control_syntax() {
+  int a;
+  a = 3;
+  if (a == 1) fail();
+  if (a == 2) fail();
+  if (a == 3) ok();
+  assert(3, a);
 
-//   assert(5, inner_multi_c());
-// }
+  assert(5, inner_multi_c());
+}
 
-// int inner_block() {
-//   int a;
-//   a = 0;
-//   for(;;) {
-//     a = a + 1;
-//     if (a == 5) {return 10;}
-//   }
-//   return 2;
-// }
+int inner_block() {
+  int a;
+  a = 0;
+  for(;;) {
+    a = a + 1;
+    if (a == 5) {return 10;}
+  }
+  return 2;
+}
 
-// int test_block() {
-//   assert(10, inner_block());
-// }
+int test_block() {
+  assert(10, inner_block());
+}
 
 
 int foo() {
@@ -161,33 +164,118 @@ int test_func() {
   assert(12, bar2(3, 4, 5));
 }
 
-// おそらくintのサイズが4ではなく8になっていることが原因で，
-// 変数の値を定義する順番によって，上手くいく時といかない時がある
-
-// int inner_test_pointer01() {
-//   int x;
-//   x = 3;
-//   int *y;
+int inner_test_pointer01() {
+  int x;
+  x = 3;
+  int *y;
   
-//   y = &x;
-//   assert(3, *y);
-// }
-// int inner_test_pointer02() {
-//   int x;
-//   int y;
-//   int *z;
-//   x = 3;
-//   y = 5;
-//   z = &y + 4;
-//   assert(3, *z);
-// }
-// int test_pointer() {
-//   inner_test_pointer01();
-//   inner_test_pointer02();
-// }
+  y = &x;
+  assert(3, *y);
+}
+int inner_test_pointer02() {
+  int x;
+  int y;
+  int *z;
+  x = 3;
+  y = 5;
+  z = &y + 4;
+  assert(3, *z);
+}
+int test_pointer() {
+  inner_test_pointer01();
+  inner_test_pointer02();
+}
+
+
+
+
+int test_func_def_func1(int a, int b) { return a + b; }
+int test_func_def_func2(int a, int b, int c) { return a + c; }
+int test_func_def() {
+  assert(3, test_func_def_func1(1, 2));
+  assert(4, test_func_def_func2(1, 2, 3));
+}
+
+int sum(int n) {
+  if (n < 0) return 0;
+  return n + sum(n - 1);
+}
+
+int test_func_def_recursive() {
+  int a;
+  a = 10;
+  assert(55, sum(a));
+}
+
+int test_pointer_calc() {
+  int *p;
+  alloc4(&p, 1, 2, 4, 8);
+
+  int *q;
+  q = p + 2;
+  assert(4, *q);
+
+  q = p + 3;
+  assert(8, *q);
+
+  q = q - 2;
+  assert(2, *q);
+}
+
+int test_sizeof() {
+  int x;
+  assert(4, sizeof(x));
+
+  int *y;
+  assert(8, sizeof(y));
+
+  assert(8, sizeof(y + 3));
+
+  assert(4, sizeof(*y));
+
+  assert(4, sizeof(1));
+}
+
+int test_array() {
+  int a[2];
+  *a = 1;
+  *(a + 1) = 2;
+  int *p;
+  p = a;
+  assert(3, *p + *(p + 1));
+}
+
+int test_array_access() {
+  int a[2];
+  a[0] = 1;
+  a[1] = 2;
+  int *p;
+  p = a;
+  assert(3, p[0] + p[1]);
+}
+
+int test_global_variable() {
+  g_a = 10;
+  assert(10, g_a);
+}
+
+int test_char() {
+  char x[3];
+  x[0] = -1;
+  x[1] = 2;
+  int y;
+  y = 4;
+  assert(3, x[0] + y);
+  assert(1, sizeof(x[0]));
+}
+
+int test_string() {
+  char *a;
+  a = "abcd";
+  assert(97, a[0]);
+}
 
 int main() {
-
   test_calc();
   test_compare();
   test_variable();
@@ -195,11 +283,19 @@ int main() {
   test_if();
   test_while();
   test_for();
-  // test_multi_control_syntax();
-  // test_block();
+  test_multi_control_syntax();
+  test_block();
   test_func();
-  // test_pointer(); 
-
+  test_pointer();
+  test_func_def();
+  test_func_def_recursive();
+  test_pointer_calc();
+  test_sizeof();
+  test_array();
+  test_array_access(); 
+  test_global_variable();
+  test_char();
+  test_string();
   printf("OK\n");
   return 0;
 }

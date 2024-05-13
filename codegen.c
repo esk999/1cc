@@ -32,6 +32,7 @@ void gen(Node *node){
     label_index += 1;
     int id = label_index;
     int argcnt = 0;
+    Type *t;
     switch(node->kind){
         case ND_STRING:
             printf("    push offset .LC_%d\n", node->string->index);
@@ -44,14 +45,15 @@ void gen(Node *node){
         case ND_LVAR:
         case ND_GVAR:
             gen_val(node);                     // ローカル変数のアドレスをスタックにプッシュ
-            if(node->type && node->type->ty == ARRAY){
+            t = get_type(node);
+            if(t && t->ty == ARRAY){
                 return;                         // 配列の場合はアドレスをそのままにしたい
             }
             printf("    pop rax\n");            // ローカル変数のアドレスをraxレジスタに格納
-            if(node->type && node->type->ty == CHAR){
+            if(t && t->ty == CHAR){
                 printf("    movsx rax, BYTE PTR [rax]\n");
             }
-            else if(node->type && node->type->ty == INT){
+            else if(t && t->ty == INT){
                 printf("    movsxd rax, DWORD PTR [rax]\n");
             }
             else{
@@ -63,12 +65,13 @@ void gen(Node *node){
         case ND_ASSIGN:
             gen_val(node->lhs);                // 左辺のローカル変数のアドレスをスタックにプッシュ
             gen(node->rhs);                     // 右辺の値をスタックにプッシュ
+            t = get_type(node);
             printf("    pop rdi\n");            // 右辺の値をrdiに格納
             printf("    pop rax\n");            // 左辺のアドレスをraxに格納
-            if(node->type && node->type->ty == CHAR){
+            if(t && t->ty == CHAR){
                 printf("    mov [rax], dil\n");
             }
-            else if(node->type && node->type->ty == INT){
+            else if(t && t->ty == INT){
                 printf("    mov [rax], edi\n");
             }
             else{
@@ -151,6 +154,9 @@ void gen(Node *node){
             printf(".Lbegin%03d:\n", id);
             // node->conditionのコードを作る
             gen(node->condition);
+            if (!node->condition){
+                printf("  push 1\n");
+            }
             // node->conditionのアドレスがスタックトップに残っているのでポップする
             printf("    pop rax\n");
             // raxと0の値を比べる
@@ -242,9 +248,18 @@ void gen(Node *node){
             return;
 
         case ND_DEREF:
-            gen(node->lhs); 
+            gen(node->lhs);
+            t = get_type(node);
             printf("    pop rax\n");
-            printf("    mov rax, [rax]\n");
+            if (t && t->ty == CHAR) {
+                printf("    movsx rax, BYTE PTR [rax]\n");
+            } 
+            else if (t && t->ty == INT) {
+                printf("    movsxd rax, DWORD PTR [rax]\n");
+            } 
+            else {
+                printf("    mov rax, [rax]\n");
+            }
             printf("    push rax\n");
             return;
 
